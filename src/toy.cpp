@@ -6,6 +6,7 @@
 #include "Lexer/AstPrinter.h"
 
 #include "../external/magic_enum.hpp"
+#include "Interpreter/Interpreter.h"
 
 void Toy::run(const std::string& source) {
     Lexer lexer(*this, source);
@@ -18,12 +19,19 @@ void Toy::run(const std::string& source) {
         std::cout << token << "\n";
     }
 	if (m_has_error) {
+		// exit with code 65
 		return;
 	}
 
 	AstPrinter printer{};
 	std::cout << printer.print(expression) << "\n";
 
+	if (m_has_runtime_error) {
+		// exit with code 70
+		return;
+	}
+	Interpreter interpreter(*this);
+	interpreter.interpret(expression);
 }
 
 void Toy::run_prompt() {
@@ -34,4 +42,9 @@ void Toy::run_prompt() {
         if (line.length() == 0) break;
         run(line);
     }
+}
+
+void Toy::runtime_error(RuntimeError error) {
+	std::cout << "\n[line " << error.token().line() << "] " << error.what();
+	m_has_runtime_error = true;
 }

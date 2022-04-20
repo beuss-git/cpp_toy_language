@@ -7,12 +7,13 @@
 
 class Lexer;
 class Parser;
+class Interpreter;
+class RuntimeError;
+
 
 class Toy {
 public:
-    Toy() {
-        m_has_error = false;
-    }
+	Toy() = default;
 
     [[maybe_unused]] void run(const std::string& source);
 
@@ -20,8 +21,11 @@ public:
 
     friend Lexer;
 	friend Parser;
+	friend Interpreter;
 private:
-	 void error(Token token, std::string message) {
+	void runtime_error(RuntimeError error);
+
+    void error(Token token, std::string message) {
 		if (token.type() == TokenType::TOKEN_EOF) {
 		  report(token.line(), " at end", message);
 		} else {
@@ -38,5 +42,6 @@ private:
     }
 
 private:
-    bool m_has_error;
+	bool m_has_error{ false };
+	bool m_has_runtime_error{ false };
 };

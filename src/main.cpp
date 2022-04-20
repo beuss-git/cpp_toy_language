@@ -28,8 +28,12 @@ int main() {
 
     //std::string source = R"(var language = "lox";)";
     //std::string source = R"(4+6)";
+    //std::string source = R"("Hello, " + "World!")";
+    //std::string source = R"("Hello: " + 5)";
+    //std::string source = R"(1 + 1)";
+    std::string source = R"(6 / 2*(1+2))";
     //std::string source = R"("test" == "othertest")";
-    std::string source = R"("test" == "othertest" != 3 * 3 > 4)";
+    //std::string source = R"("test" == "othertest" != 3 * 3 > 4)";
     //std::string source = R"(
 ///* This is a comment*/
     //var language = "lox";
@@ -40,7 +44,7 @@ int main() {
 
     //var langu= "lox2";
     //)";
-    toy.run(source);
+	toy.run(source);
     //toy.run_prompt();
     return 0;
 }
