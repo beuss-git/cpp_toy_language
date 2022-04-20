@@ -30,7 +30,7 @@ public:
 		return parenthesize("group", expr->expression());
 	}
 	Value visit(Literal* expr) override {
-		return expr->value().to_string();
+		return expr->value();
 	}
 	Value visit(Unary* expr) override {
 		return parenthesize(expr->op().lexeme(), expr->right());
