@@ -70,7 +70,7 @@ private:
 	Token consume(TokenType type, std::string message) {
 		if (check(type)) return advance();
 
-		throw std::exception((std::string(peek().lexeme()) + ": " + message).c_str());
+		throw error(peek(), message);
 	}
 	ParseError error(Token token, std::string message) {
 		m_toy.error(token, message);
