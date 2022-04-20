@@ -51,7 +51,9 @@ void Lexer::scan_token() {
             add_token(match('=') ? TokenType::GREATER_EQUAL : TokenType::GREATER);
             break;
         case '/':
-            if (match('/')) {  // Comment
+            if (match('*')) {
+                block_comment();
+            } else if (match('/')) {  // Comment
                 while (peek() != '\n' && !has_reached_end()) {
                     // Keep advancing until newline or end of file
                     advance();
@@ -78,6 +80,7 @@ void Lexer::scan_token() {
         case '\n':
             // New line
             m_line++;
+            break;
 
         default:
             if (std::isdigit(c)){

@@ -44,6 +44,24 @@ private:
         return m_source.at(m_current + 1);
     }
 
+    void block_comment(){
+        // Advance until we find the closing */
+        while (peek() != '*' && peek_next() != '/' && !has_reached_end()) {
+            // We allow newlines in comment
+            if (peek() == '\n') m_line++;
+            advance();
+        }
+        if (has_reached_end()) {
+            m_toy.error(m_line, "Unterminated string");
+            return;
+        }
+        // Advance closing * /
+        advance();
+        advance();
+
+        std::string value = m_source.substr(m_start + 1, m_current - 1 - m_start);
+        add_token(TokenType::STRING, value);
+    }
     void string() {
         // Advance until we find the closing "
         while (peek() != '"' && !has_reached_end()) {
