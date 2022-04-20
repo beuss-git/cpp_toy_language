@@ -1,9 +1,10 @@
 #pragma once
 #include <cassert>
-#include <variant>
+#include <memory>
 #include <string>
 
 #include "Token.h"
+#include "../Value.h"
 
 class Visitor;
 class Expr {
@@ -14,38 +15,40 @@ public:
 	}
 };
 
+using ExprPtr = std::shared_ptr<Expr>;
+
 class Binary final : public Expr {
 public:
-	Binary(std::shared_ptr<Expr> left, Token op, std::shared_ptr<Expr> right)
+	Binary(ExprPtr left, Token op, ExprPtr right)
 		 : m_left(left), m_op(op), m_right(right) { }
 	std::string accept(Visitor* visitor) override;
 
-	std::shared_ptr<Expr> left() const {
+	ExprPtr left() const {
 		return m_left;
 }
 	Token op() const {
 		return m_op;
 }
-	std::shared_ptr<Expr> right() const {
+	ExprPtr right() const {
 		return m_right;
 }
 private:
-	std::shared_ptr<Expr> m_left{};
+	ExprPtr m_left{};
 	Token m_op{};
-	std::shared_ptr<Expr> m_right{};
+	ExprPtr m_right{};
 };
 
 class Grouping final : public Expr {
 public:
-	Grouping(std::shared_ptr<Expr> expression)
+	Grouping(ExprPtr expression)
 		 : m_expression(expression) { }
 	std::string accept(Visitor* visitor) override;
 
-	std::shared_ptr<Expr> expression() const {
+	ExprPtr expression() const {
 		return m_expression;
 }
 private:
-	std::shared_ptr<Expr> m_expression{};
+	ExprPtr m_expression{};
 };
 
 class Literal final : public Expr {
@@ -63,19 +66,19 @@ private:
 
 class Unary final : public Expr {
 public:
-	Unary(Token op, std::shared_ptr<Expr> right)
+	Unary(Token op, ExprPtr right)
 		 : m_op(op), m_right(right) { }
 	std::string accept(Visitor* visitor) override;
 
 	Token op() const {
 		return m_op;
 }
-	std::shared_ptr<Expr> right() const {
+	ExprPtr right() const {
 		return m_right;
 }
 private:
 	Token m_op{};
-	std::shared_ptr<Expr> m_right{};
+	ExprPtr m_right{};
 };
 
 class Visitor {

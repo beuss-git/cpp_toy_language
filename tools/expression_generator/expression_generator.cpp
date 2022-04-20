@@ -92,11 +92,13 @@ void define_base_class(std::fstream& f, std::string base_name) {
 	// #pragma once
 	f << "#pragma once\n";
 	f << "#include <cassert>\n";
-	f << "#include <variant>\n";
+	//f << "#include <variant>\n";
+	f << "#include <memory>\n";
 	f << "#include <string>\n\n";
 	// #include "token.h"
 	f << "#include \"Token.h\"\n\n";
 	f << "class Visitor;\n";
+
 	// class [base_name] {
 	f << "class " << base_name << " {\n";
 	f << "public:\n";
@@ -109,6 +111,9 @@ R"(	virtual std::string accept(Visitor* visitor) {
 
 	// }
 	f << "};\n\n";
+
+	// Define ExprPtr
+	f << "using ExprPtr = std::shared_ptr<Expr>;\n\n";
 }
 
 void define_base_visitor(std::fstream& f, std::string base_name, std::vector<std::string> types) {
@@ -169,10 +174,10 @@ int main() {
 	static auto output_dir = R"(G:\repos\cpp_toy_language\src\lexer)";
 
 	define_ast(output_dir, "Expr", std::vector<std::string>{
-		"Binary   | std::shared_ptr<Expr> left; Token op; std::shared_ptr<Expr> right",
-		"Grouping | std::shared_ptr<Expr> expression",
+		"Binary   | ExprPtr left; Token op; ExprPtr right",
+		"Grouping | ExprPtr expression",
 		"Literal  | std::any value",
-		"Unary    | Token op; std::shared_ptr<Expr> right"
+		"Unary    | Token op; ExprPtr right"
 	});
 	return 0;
 }

@@ -61,6 +61,13 @@ public:
     [[nodiscard]] std::string lexeme() const {
         return m_lexeme;
     }
+    [[nodiscard]] std::any literal() const {
+        return m_literal;
+    }
+	[[nodiscard]] int line() const {
+		return m_line;
+    }
+
 	[[nodiscard]] bool is_literal() const {
 		return m_type == TokenType::STRING
 			|| m_type == TokenType::NUMBER

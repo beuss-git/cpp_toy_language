@@ -1,7 +1,7 @@
 #pragma once
 #include "Expr.h"
 #include <sstream>
-#include <variant>
+#include "Parser.h"
 
 
 class AstPrinter final : public Visitor {
@@ -19,7 +19,7 @@ public:
 		return ss.str();
 	}
 
-	std::string print(std::shared_ptr<Expr> expr) {
+	std::string print(ExprPtr expr) {
 		return expr->accept(this);
 	}
 
