@@ -88,6 +88,9 @@ private:
 				throw RuntimeError(expr->op(), "Invalid operands.");
 			case TokenType::SLASH:
 				check_number_operands(expr->op(), left, right);
+				if (right.as_double() == 0.0) {
+					throw RuntimeError(expr->op(), "Division by zero.");
+				}
 				return left.as_double() / right.as_double();
 			case TokenType::STAR:
 				check_number_operands(expr->op(), left, right);
