@@ -3,6 +3,7 @@
 #include <string>
 #include <utility>
 #include <any>
+#include <variant>
 
 enum class TokenType {
     // Single-character tokens
@@ -40,17 +41,34 @@ enum class TokenType {
     TOKEN_EOF
 };
 
+//enum class Nil {
+//	NIL
+//};
+
+//inline std::ostream& operator<<(std::ostream& os, const Nil&) {
+//	return os << std::string("Nil");
+//}
+
 class Token {
 public:
     Token(TokenType type, std::string lexeme, std::any literal, int line) : m_type(type), m_lexeme(std::move(lexeme)),
                                                                             m_literal(std::move(literal)),
                                                                             m_line(line) {}
+	Token() = default;
 
     [[nodiscard]] TokenType type() const { return m_type; }
 
     [[nodiscard]] std::string lexeme() const {
         return m_lexeme;
     }
+	[[nodiscard]] bool is_literal() const {
+		return m_type == TokenType::STRING
+			|| m_type == TokenType::NUMBER
+			|| m_type == TokenType::IDENTIFIER
+			|| m_type == TokenType::NIL
+			|| m_type == TokenType::TRUE
+			|| m_type == TokenType::FALSE;
+	}
 
 private:
     TokenType m_type{TokenType::TOKEN_EOF};
