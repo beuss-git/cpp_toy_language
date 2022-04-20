@@ -2,6 +2,7 @@
 #include <fstream>
 #include <vector>
 #include <sstream>
+#include <algorithm>
 
 // trim from start (in place)
 void ltrim(std::string &s) {
@@ -35,7 +36,11 @@ std::vector<std::string> split(std::string str, std::string sep) {
 	}
 	return arr;
 }
-void define_type(std::fstream& f, std::string base_name, std::string class_name, std::string field_list) {
+std::string str_lower(std::string data) {
+	std::transform(data.begin(), data.end(), data.begin(), [](unsigned char c) {return std::tolower(c); });
+	return data;
+}
+void define_type(std::fstream& f, std::string base_name, std::string return_type, std::string class_name, std::string field_list) {
 	// class [class_name] final : [base_name] {
 	f << "class " << class_name << " final : public " << base_name << " {\n";
 	f << "public:\n";
@@ -63,7 +68,7 @@ void define_type(std::fstream& f, std::string base_name, std::string class_name,
 	f << " { }\n";
 
 	// Accept override
-	f << "\tValue accept(Visitor* visitor) override;\n\n";
+	f << "\t"<< return_type << " accept(" << base_name << "Visitor* visitor) override;\n\n";
 
 	// Field getters
 	for (const auto& field : fields) {
@@ -88,7 +93,7 @@ void define_type(std::fstream& f, std::string base_name, std::string class_name,
 
 	f << "};\n\n";
 }
-void define_base_class(std::fstream& f, std::string base_name) {
+void define_start(std::fstream& f, std::string base_name) {
 	// #pragma once
 	f << "#pragma once\n";
 	f << "#include <cassert>\n";
@@ -98,27 +103,33 @@ void define_base_class(std::fstream& f, std::string base_name) {
 	f << "#include \"../Value.h\"\n\n";
 	// #include "token.h"
 	f << "#include \"Token.h\"\n\n";
-	f << "class Visitor;\n";
+	//f << "namespace " << base_name << " {\n\n";
+	f << "class " << base_name << "Visitor;\n";
+}
+void define_end(std::fstream& f) {
+	//f << "}\n";
+}
+void define_base_class(std::fstream& f, std::string base_name, std::string return_type) {
 
 	// class [base_name] {
 	f << "class " << base_name << " {\n";
 	f << "public:\n";
-	f << 
-R"(	virtual Value accept(Visitor* visitor) {
-		assert(false, "Not implemented");
-		return {};
+	f << "\tvirtual " << return_type << " accept(" << base_name << "Visitor * visitor) {\n";
+	f << "\t\tassert(false, \"Not implemented\");\n";
+	if (return_type != "void") {
+		f << "return {};\n";
 	}
-)";
+	f << "\t}\n";
 
 	// }
 	f << "};\n\n";
 
-	// Define ExprPtr
-	f << "using ExprPtr = std::shared_ptr<Expr>;\n\n";
+	// Define Ptr
+	f << "using " << base_name << "Ptr = std::shared_ptr<" << base_name << ">;\n\n";
 }
 
-void define_base_visitor(std::fstream& f, std::string base_name, std::vector<std::string> types) {
-	f << "class Visitor {\n";
+void define_base_visitor(std::fstream& f, std::string base_name, std::string return_type, std::vector<std::string> types) {
+	f << "class " << base_name << "Visitor {\n";
 	f << "public:\n";
 
 	for (std::string type : types) {
@@ -127,12 +138,12 @@ void define_base_visitor(std::fstream& f, std::string base_name, std::vector<std
 		std::string fields = split(type, "|")[1];
 		trim(fields);
 
-		f << "\tvirtual Value visit(" << class_name << "*) = 0;\n";
+		f << "\tvirtual " << return_type << " visit_" << str_lower(base_name) << "(" << class_name << "*) = 0;\n";
 	}
 	f << "};\n\n";
 }
 
-void define_visitors_accept(std::fstream& f, std::string base_name, std::vector<std::string> types) {
+void define_visitors_accept(std::fstream& f, std::string base_name, std::string return_type, std::vector<std::string> types) {
 
 	for (std::string type : types) {
 		std::string class_name = split(type, "|")[0];
@@ -140,13 +151,13 @@ void define_visitors_accept(std::fstream& f, std::string base_name, std::vector<
 		std::string fields = split(type, "|")[1];
 		trim(fields);
 
-		f << "inline Value " << class_name << "::accept(Visitor* visitor) {\n";
-		f << "\treturn visitor->visit(this);\n";
+		f << "inline " << return_type << " " << class_name << "::accept(" << base_name << "Visitor* visitor) {\n";
+		f << "\t" << (return_type == "void" ? "" : "return ") << "visitor->visit_" << str_lower(base_name) << "(this);\n";
 		f << "}\n\n";
 	}
 }
 
-void define_ast(const std::string& output_dir, std::string base_name, std::vector<std::string> types) {
+void define_ast(const std::string& output_dir, std::string base_name, std::string return_type, const std::vector<std::string>& types) {
 	std::string path = output_dir + "/" + base_name + ".h";
 	std::fstream f(path, std::fstream::out);
 	if (!f.is_open()) {
@@ -156,29 +167,37 @@ void define_ast(const std::string& output_dir, std::string base_name, std::vecto
 		return;
 	}
 
-	define_base_class(f, base_name);
+	define_start(f, base_name);
+
+	define_base_class(f, base_name, return_type);
 
 	for (std::string type : types) {
 		std::string class_name = split(type, "|")[0];
 		trim(class_name);
 		std::string fields = split(type, "|")[1];
 		trim(fields);
-		define_type(f, base_name, class_name, fields);
+		define_type(f, base_name, return_type, class_name, fields);
 	}
 
-	define_base_visitor(f, base_name, types);
-	define_visitors_accept(f, base_name, types);
+	define_base_visitor(f, base_name, return_type, types);
+	define_visitors_accept(f, base_name, return_type, types);
+
+	define_end(f);
 }
 
 int main() {
 
 	static auto output_dir = R"(G:\repos\cpp_toy_language\src\lexer)";
 
-	define_ast(output_dir, "Expr", std::vector<std::string>{
+	define_ast(output_dir, "Expr", "Value", std::vector<std::string>{
 		"Binary   | ExprPtr left; Token op; ExprPtr right",
 		"Grouping | ExprPtr expression",
 		"Literal  | Value value",
 		"Unary    | Token op; ExprPtr right"
+	});
+	define_ast(output_dir, "Stmt", "void", std::vector<std::string>{
+		"Expression	| ExprPtr expression",
+		"Print		| ExprPtr expression",
 	});
 	return 0;
 }
