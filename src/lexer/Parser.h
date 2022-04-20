@@ -3,10 +3,19 @@
 #include <vector>
 #include <algorithm>
 #include "Expr.h"
+#include "Stmt.h"
 #include "Token.h"
 #include "../Toy.h"
 
 /*
+	program        → statement* EOF ;
+
+	statement      → exprStmt
+				   | printStmt ;
+
+	exprStmt       → expression ";" ;
+	printStmt      → "print" expression ";" ;
+
 	expression     → equality ;
 	equality       → comparison ( ( "!=" | "==" ) comparison )* ;
 	comparison     → term ( ( ">" | ">=" | "<" | "<=" ) term )* ;
@@ -24,22 +33,52 @@ static ExprPtr create_expression(Args&&... args) {
 	return std::make_shared<T>(std::forward<Args>(args)...);
 }
 
+template<typename T, typename... Args>
+static StmtPtr create_statement(Args&&... args) {
+	return std::make_shared<T>(std::forward<Args>(args)...);
+}
+
 class Parser {
 public:
 	Parser(Toy& toy, const std::vector<Token> tokens) : m_toy(toy), m_tokens(tokens) {}
 
-	ExprPtr parse() {
+	std::vector<StmtPtr> parse() {
+
 		try {
-			return expression();
+			std::vector<StmtPtr> statements{};
+
+			while (!has_reached_end()) {
+				statements.push_back(statement());
+			}
+			return statements;
+		} catch (const ParseError& error) {
+			return {};
 		}
-		catch (const ParseError& error) {
-			return nullptr;
-		}
+		//try {
+		//	return expression();
+		//}
+		//catch (const ParseError& error) {
+		//	return nullptr;
+		//}
 	}
 
 private:
 	class ParseError : public std::exception { };
 
+	StmtPtr print_statement() {
+		auto value = expression();
+		consume(TokenType::SEMICOLON, "Expect ';' after value.");
+		return create_statement<Print>(value);
+	}
+	StmtPtr statement() {
+		if (match(TokenType::PRINT)) return print_statement();
+		return expression_statement();
+	}
+	StmtPtr expression_statement() {
+		auto expr = expression();
+		consume(TokenType::SEMICOLON, "Expect ';' after expression.");
+		return create_statement<Expression>(expr);
+	}
 	bool has_reached_end() const {
 		return m_tokens.at(m_current).type() == TokenType::TOKEN_EOF;
 	}

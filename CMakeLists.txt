@@ -10,6 +10,7 @@ add_executable(cpp_toy_language
 		"src/Value.h"
 		"src/Lexer/AstPrinter.h"
         "src/lexer/Expr.h"
+        "src/lexer/Stmt.h"
         "src/lexer/Lexer.cpp"
         "src/lexer/Lexer.h"
 		"src/Lexer/Parser.h"

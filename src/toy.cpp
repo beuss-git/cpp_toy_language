@@ -13,25 +13,31 @@ void Toy::run(const std::string& source) {
 
     const auto tokens = lexer.scan_tokens();
 	Parser parser(*this, tokens);
-	ExprPtr expression = parser.parse();
+	//auto expression = parser.parse();
 
-    for (const auto& token: tokens) {
-        std::cout << token << "\n";
-    }
-	if (m_has_error) {
-		// exit with code 65
-		return;
-	}
+ //   for (const auto& token: tokens) {
+ //       std::cout << token << "\n";
+ //   }
+	//if (m_has_error) {
+	//	// exit with code 65
+	//	return;
+	//}
 
-	AstPrinter printer{};
-	std::cout << printer.print(expression) << "\n";
+	//AstPrinter printer{};
+	//std::cout << printer.print(expression) << "\n";
 
-	if (m_has_runtime_error) {
-		// exit with code 70
-		return;
-	}
+	//if (m_has_runtime_error) {
+	//	// exit with code 70
+	//	return;
+	//}
+	//Interpreter interpreter(*this);
+	//interpreter.interpret(expression);
+
+
+
+	auto statements = parser.parse();
 	Interpreter interpreter(*this);
-	interpreter.interpret(expression);
+	interpreter.interpret(statements);
 }
 
 void Toy::run_prompt() {

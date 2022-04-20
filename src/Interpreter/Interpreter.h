@@ -1,5 +1,8 @@
 #pragma once
+#include <vector>
+
 #include "../Lexer/Expr.h"
+#include "../Lexer/Stmt.h"
 #include "../Toy.h"
 
 class RuntimeError : public std::runtime_error {
@@ -12,15 +15,16 @@ private:
 	Token m_token{};
 };
 
-class Interpreter final : public Visitor {
+class Interpreter final : public ExprVisitor, public StmtVisitor {
 public:
 	Interpreter(Toy& toy) : m_toy(toy){}
 
 
-	void interpret(ExprPtr expression) {
+	void interpret(const std::vector<StmtPtr>& statements) {
 		try {
-			auto value = evaluate(expression);
-			std::cout << value.to_string() << "\n";
+			for (auto statement : statements) {
+				execute(statement);
+			}
 		}
 		catch (const RuntimeError& e) {
 			m_toy.runtime_error(e);
@@ -28,13 +32,17 @@ public:
 	}
 
 private:
-	Value visit(Literal* expr) {
+	void execute(StmtPtr stmt) {
+		stmt->accept(this);
+	}
+
+	Value visit_expr(Literal* expr) override {
 		return expr->value();
 	}
-	Value visit(Grouping* expr) {
+	Value visit_expr(Grouping* expr) override {
 		return evaluate(expr->expression());
 	}
-	Value visit(Unary* expr) {
+	Value visit_expr(Unary* expr) override {
 		auto right = evaluate(expr->right());
 		switch(expr->op().type()) {
 			case TokenType::BANG:
@@ -45,7 +53,7 @@ private:
 		}
 		return nullptr;
 	}
-	Value visit(Binary* expr) {
+	Value visit_expr(Binary* expr) override {
 		const auto left = evaluate(expr->left());
 		const auto right = evaluate(expr->right());
 
@@ -99,6 +107,14 @@ private:
 		return nullptr;
 	}
 
+	void visit_stmt(Expression* stmt) override {
+		evaluate(stmt->expression());
+	}
+
+	void visit_stmt(Print* stmt) override {
+		auto value = evaluate(stmt->expression());
+		std::cout << value.to_string();
+	}
 
 	Value evaluate(ExprPtr expr) {
 		return expr->accept(this);
