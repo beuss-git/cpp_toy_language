@@ -12,3 +12,13 @@ void Toy::run(const std::string& source) {
         std::cout << token << "\n";
     }
 }
+
+void Toy::run_prompt() {
+    for (;;) {
+        std::cout << "> ";
+        std::string line;
+        std::getline(std::cin, line);
+        if (line.length() == 0) break;
+        run(line);
+    }
+}

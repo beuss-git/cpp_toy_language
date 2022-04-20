@@ -11,20 +11,12 @@ public:
         m_has_error = false;
     }
 
-    void run_prompt() {
-        for (;;) {
-            std::cout << "> ";
-            std::string line;
-            std::getline(std::cin, line);
-            if (line.length() == 0) break;
-            run(line);
-        }
-    }
+
+    [[maybe_unused]] void run(const std::string& source);
+    [[maybe_unused]] void run_prompt();
 
     friend Lexer;
 private:
-    void run(const std::string& source);
-
     void error(int line, const std::string& message) {
         report(line, "", message);
     }
