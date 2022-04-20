@@ -1,7 +1,7 @@
-#include "toy.h"
+#include "Toy.h"
 
 #include <iostream>
-#include "lexer/lexer.h"
+#include "Lexer/Lexer.h"
 #include "../external/magic_enum.hpp"
 
 void Toy::run(const std::string& source) {

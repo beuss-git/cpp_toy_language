@@ -2,7 +2,8 @@
 // Created by beuss on 20.04.22.
 //
 
-#include "lexer.h"
+#include "Lexer.h"
+#include "Expr.h"
 
 void Lexer::scan_token() {
     char c = advance();

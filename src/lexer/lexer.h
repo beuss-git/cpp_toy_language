@@ -4,8 +4,8 @@
 #include <utility>
 #include <vector>
 #include <unordered_map>
-#include "token.h"
-#include "../toy.h"
+#include "Token.h"
+#include "../Toy.h"
 
 
 class Lexer {
