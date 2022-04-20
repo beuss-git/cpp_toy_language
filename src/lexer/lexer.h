@@ -6,6 +6,7 @@
 #include <unordered_map>
 #include "Token.h"
 #include "../Toy.h"
+#include "../Value.h"
 
 
 class Lexer {
@@ -78,7 +79,7 @@ private:
         // Advance closing "
         advance();
 
-        std::string value = m_source.substr(m_start + 1, m_current - 1 - m_start);
+        std::string value = m_source.substr(m_start + 1, m_current - 1 - m_start - 1);
         add_token(TokenType::STRING, value);
     }
 
@@ -119,7 +120,7 @@ private:
         add_token(type, nullptr);
     }
 
-    void add_token(TokenType type, std::any literal) {
+    void add_token(TokenType type, Value literal) {
         std::string text = m_source.substr(m_start, m_current - m_start);
         m_tokens.emplace_back(type, text, literal, m_line);
     }

@@ -146,7 +146,7 @@ private:
 		if (match(TokenType::FALSE)) return create_expression<Literal>(false);
 		if (match(TokenType::TRUE)) return create_expression<Literal>(true);
 		// TODO: better nil support
-		if (match(TokenType::NIL)) return create_expression<Literal>(std::any{});
+		if (match(TokenType::NIL)) return create_expression<Literal>(nullptr);
 
 		if (match(TokenType::NUMBER, TokenType::STRING)) {
 			return create_expression<Literal>(previous().literal());

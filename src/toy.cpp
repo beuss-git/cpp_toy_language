@@ -14,9 +14,9 @@ void Toy::run(const std::string& source) {
 	Parser parser(*this, tokens);
 	ExprPtr expression = parser.parse();
 
-    //for (const auto& token: tokens) {
-    //    std::cout << token << "\n";
-    //}
+    for (const auto& token: tokens) {
+        std::cout << token << "\n";
+    }
 	if (m_has_error) {
 		return;
 	}

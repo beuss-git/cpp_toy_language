@@ -4,6 +4,7 @@
 #include <utility>
 #include <any>
 #include <variant>
+#include "../Value.h"
 
 enum class TokenType {
     // Single-character tokens
@@ -51,7 +52,7 @@ enum class TokenType {
 
 class Token {
 public:
-    Token(TokenType type, std::string lexeme, std::any literal, int line) : m_type(type), m_lexeme(std::move(lexeme)),
+    Token(TokenType type, std::string lexeme, Value literal, int line) : m_type(type), m_lexeme(std::move(lexeme)),
                                                                             m_literal(std::move(literal)),
                                                                             m_line(line) {}
 	Token() = default;
@@ -61,7 +62,7 @@ public:
     [[nodiscard]] std::string lexeme() const {
         return m_lexeme;
     }
-    [[nodiscard]] std::any literal() const {
+    [[nodiscard]] Value literal() const {
         return m_literal;
     }
 	[[nodiscard]] int line() const {
@@ -80,7 +81,7 @@ public:
 private:
     TokenType m_type{TokenType::TOKEN_EOF};
     std::string m_lexeme{};
-    std::any m_literal{};
+    Value m_literal{};
     int m_line{-1};
 };
 

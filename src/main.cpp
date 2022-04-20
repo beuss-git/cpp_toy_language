@@ -27,7 +27,9 @@ int main() {
     Toy toy;
 
     //std::string source = R"(var language = "lox";)";
-    std::string source = R"(4+)";
+    //std::string source = R"(4+6)";
+    //std::string source = R"("test" == "othertest")";
+    std::string source = R"("test" == "othertest" != 3 * 3 > 4)";
     //std::string source = R"(
 ///* This is a comment*/
     //var language = "lox";

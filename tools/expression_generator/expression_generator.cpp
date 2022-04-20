@@ -63,7 +63,7 @@ void define_type(std::fstream& f, std::string base_name, std::string class_name,
 	f << " { }\n";
 
 	// Accept override
-	f << "\tstd::string accept(Visitor* visitor) override;\n\n";
+	f << "\tValue accept(Visitor* visitor) override;\n\n";
 
 	// Field getters
 	for (const auto& field : fields) {
@@ -73,7 +73,7 @@ void define_type(std::fstream& f, std::string base_name, std::string class_name,
 		
 		f << "\t" << field_type << " " << field_name << "() const {\n";
 		f << "\t\treturn m_" << field_name << ";\n";
-		f << "}\n";
+		f << "\t}\n";
 	}
 
 	// Field declarations
@@ -95,6 +95,7 @@ void define_base_class(std::fstream& f, std::string base_name) {
 	//f << "#include <variant>\n";
 	f << "#include <memory>\n";
 	f << "#include <string>\n\n";
+	f << "#include \"../Value.h\"\n\n";
 	// #include "token.h"
 	f << "#include \"Token.h\"\n\n";
 	f << "class Visitor;\n";
@@ -103,7 +104,7 @@ void define_base_class(std::fstream& f, std::string base_name) {
 	f << "class " << base_name << " {\n";
 	f << "public:\n";
 	f << 
-R"(	virtual std::string accept(Visitor* visitor) {
+R"(	virtual Value accept(Visitor* visitor) {
 		assert(false, "Not implemented");
 		return {};
 	}
@@ -126,7 +127,7 @@ void define_base_visitor(std::fstream& f, std::string base_name, std::vector<std
 		std::string fields = split(type, "|")[1];
 		trim(fields);
 
-		f << "\tvirtual std::string visit(" << class_name << "*) = 0;\n";
+		f << "\tvirtual Value visit(" << class_name << "*) = 0;\n";
 	}
 	f << "};\n\n";
 }
@@ -139,7 +140,7 @@ void define_visitors_accept(std::fstream& f, std::string base_name, std::vector<
 		std::string fields = split(type, "|")[1];
 		trim(fields);
 
-		f << "inline std::string " << class_name << "::accept(Visitor* visitor) {\n";
+		f << "inline Value " << class_name << "::accept(Visitor* visitor) {\n";
 		f << "\treturn visitor->visit(this);\n";
 		f << "}\n\n";
 	}
@@ -176,7 +177,7 @@ int main() {
 	define_ast(output_dir, "Expr", std::vector<std::string>{
 		"Binary   | ExprPtr left; Token op; ExprPtr right",
 		"Grouping | ExprPtr expression",
-		"Literal  | std::any value",
+		"Literal  | Value value",
 		"Unary    | Token op; ExprPtr right"
 	});
 	return 0;
