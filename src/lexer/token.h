@@ -43,11 +43,12 @@ enum class TokenType {
 class Token {
 public:
     Token(TokenType type, std::string lexeme, std::any literal, int line) : m_type(type), m_lexeme(std::move(lexeme)),
-                                                                            m_literal(literal), m_line(line) {}
+                                                                            m_literal(std::move(literal)),
+                                                                            m_line(line) {}
 
-    TokenType type() const { return m_type; }
+    [[nodiscard]] TokenType type() const { return m_type; }
 
-    std::string lexeme() const {
+    [[nodiscard]] std::string lexeme() const {
         return m_lexeme;
     }
 
@@ -58,4 +59,4 @@ private:
     int m_line{-1};
 };
 
-std::ostream &operator<<(std::ostream &os, const Token& token);
+std::ostream& operator<<(std::ostream& os, const Token& token);

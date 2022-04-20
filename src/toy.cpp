@@ -8,7 +8,7 @@ void Toy::run(const std::string& source) {
     Lexer lexer(*this, source);
     const auto tokens = lexer.scan_tokens();
 
-    for (const auto& token : tokens) {
+    for (const auto& token: tokens) {
         std::cout << token << "\n";
     }
 }

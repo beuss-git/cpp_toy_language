@@ -44,7 +44,8 @@ private:
         return m_source.at(m_current + 1);
     }
 
-    void block_comment(){
+    // TODO: use stack to allow nested comments
+    void block_comment() {
         // Advance until we find the closing */
         while (peek() != '*' && peek_next() != '/' && !has_reached_end()) {
             // We allow newlines in comment
@@ -62,6 +63,7 @@ private:
         std::string value = m_source.substr(m_start + 1, m_current - 1 - m_start);
         add_token(TokenType::STRING, value);
     }
+
     void string() {
         // Advance until we find the closing "
         while (peek() != '"' && !has_reached_end()) {

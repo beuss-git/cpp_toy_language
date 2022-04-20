@@ -63,10 +63,12 @@ void Lexer::scan_token() {
             }
             break;
 
-        // String literals
-        case '"': string(); break;
+            // String literals
+        case '"':
+            string();
+            break;
 
-        // Keywords
+            // Keywords
 /*
         case 'o':
             if (match('r')) { add_token(TokenType::OR); }
@@ -83,11 +85,11 @@ void Lexer::scan_token() {
             break;
 
         default:
-            if (std::isdigit(c)){
+            if (std::isdigit(c)) {
                 number();
-            } else if(std::isalpha(c)){
+            } else if (std::isalpha(c)) {
                 identifier();
-            } else{
+            } else {
                 m_toy.error(m_line, std::string("Unexpected character") + c);
             }
             break;

@@ -16,7 +16,7 @@ is another comment
 
     var langu= "lox2";
     )";
-    toy.run(source);
-    //toy.run_prompt();
+    //toy.run(source);
+    toy.run_prompt();
     return 0;
 }
