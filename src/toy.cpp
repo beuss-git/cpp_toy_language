@@ -64,6 +64,6 @@ void Toy::run_prompt() {
 }
 
 void Toy::runtime_error(RuntimeError error) {
-	std::cout << "\n[line " << error.token().line() << "] " << error.what();
+	std::cout << "\n[line " << error.token().line() << "] " << error.what() << "\n";
 	m_has_runtime_error = true;
 }
