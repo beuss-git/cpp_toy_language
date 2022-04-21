@@ -194,15 +194,17 @@ int main() {
 		"Binary   | ExprPtr left; Token op; ExprPtr right",
 		"Grouping | ExprPtr expression",
 		"Literal  | Value value",
+		"Logical  | ExprPtr left; Token op; ExprPtr right",
 		"Unary    | Token op; ExprPtr right",
 		"Variable | Token name"
 	});
 	define_ast(output_dir, "Stmt", "void", std::vector<std::string>{
 		"Block		| std::vector<StmtPtr> statements",
 		"Expression	| ExprPtr expression",
-		"If			| ExprPtr condition; StmtPtr thenBranch; StmtPtr elseBranch",
+		"If			| ExprPtr condition; StmtPtr then_branch; StmtPtr else_branch",
 		"Print		| ExprPtr expression",
 		"Var			| Token name; ExprPtr initializer",
+		"While        | ExprPtr condition; StmtPtr body"
 	});
 	return 0;
 }

@@ -46,12 +46,11 @@ private:
 	}
 
 	void visit_stmt(If* stmt) override {
-		auto if_value = evaluate(stmt->condition());
-		if (if_value.as_bool()) {
-			execute(stmt->thenBranch());
+		if (is_truthy(evaluate(stmt->condition()))) {
+			execute(stmt->then_branch());
 		}
-		else if (stmt->elseBranch()) {
-			execute(stmt->elseBranch());
+		else if (stmt->else_branch()) {
+			execute(stmt->else_branch());
 		}
 	}
 
@@ -61,6 +60,18 @@ private:
 
 	Value visit_expr(Literal* expr) override {
 		return expr->value();
+	}
+	Value visit_expr(Logical* expr) override {
+		auto left = evaluate(expr->left());
+		// Short circuit OR if lhs is true
+		if (expr->op().type() == TokenType::OR) {
+			if (is_truthy(left)) return left;
+		}
+		// Short circuit AND if lhs false
+		else if (!is_truthy(left)) {
+			return left;
+		}
+		return evaluate(expr->right());
 	}
 	Value visit_expr(Grouping* expr) override {
 		return evaluate(expr->expression());
@@ -146,6 +157,12 @@ private:
 			value = evaluate(stmt->initializer());
 		}
 		m_environment.define(stmt->name().lexeme(), value);
+	}
+
+	void visit_stmt(While* stmt) override {
+		while (is_truthy(evaluate(stmt->condition()))) {
+			execute(stmt->body());
+		}
 	}
 
 	Value visit_expr(Variable* expr) override {

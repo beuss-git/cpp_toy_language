@@ -19,7 +19,10 @@
 	statement      → exprStmt
 				   | ifStmt
 				   | printStmt
+				   | whileStmt
 				   | block ;
+
+	whileStmt      → "while" "(" expression ")" statement ;
 
 	ifStmt         → "if" "(" expression ")" statement
 				   ( "else" statement )? ;
@@ -31,7 +34,11 @@
 
 	expression     → assignment ;
 	assignment     → IDENTIFIER "=" assignment
-				   | equality ;
+				   | logic_or ;
+
+    logic_or       → logic_and ( "or" logic_and )* ;
+	logic_and      → equality ( "and" equality )* ;
+
 	equality       → comparison ( ( "!=" | "==" ) comparison )* ;
 	comparison     → term ( ( ">" | ">=" | "<" | "<=" ) term )* ;
 	term           → factor ( ( "-" | "+" ) factor )* ;
@@ -125,9 +132,9 @@ private:
 		return assignment();
 	}
 	// assignment     → IDENTIFIER "=" assignment
-	//				| equality ;
+	//				| logic_or ;
 	ExprPtr assignment() {
-		auto expr = equality();
+		auto expr = logic_or();
 		if (match(TokenType::EQUAL)) {
 			Token equals = previous();
 			auto value = assignment();
@@ -141,6 +148,29 @@ private:
 		}
 		return expr;
 	}
+
+	// logic_or       → logic_and ( "or" logic_and )* ;
+	ExprPtr logic_or() {
+		auto expr = logic_and();
+		while (match(TokenType::OR)) {
+			Token op = previous();
+			auto right = logic_and();
+			expr = create_expression<Logical>(expr, op, right);
+		}
+		return expr;
+	}
+
+	// logic_and      → equality ( "and" equality )* ;
+	ExprPtr logic_and() {
+		auto expr = equality();
+		while (match(TokenType::AND)) {
+			Token op = previous();
+			auto right = equality();
+			expr = create_expression<Logical>(expr, op, right);
+		}
+		return expr;
+	}
+
 	// equality       → comparison ( ( "!=" | "==" ) comparison )* ;
 	ExprPtr equality() {
 		ExprPtr expr = comparison();
@@ -251,10 +281,12 @@ private:
 	// statement      → exprStmt
 	//				| ifStmt
 	//				| printStmt
+	//				| whileStmt
 	//				| block ;
 	StmtPtr statement() {
 		if (match(TokenType::IF)) return if_statement();
 		if (match(TokenType::PRINT)) return print_statement();
+		if (match(TokenType::WHILE)) return while_statement();
 		if (match(TokenType::LEFT_BRACE)) return block();
 		return expression_statement();
 	}
@@ -263,22 +295,28 @@ private:
 	// ifStmt         → "if" "(" expression ")" statement
 	//				   ( "else" statement )? ;
 	StmtPtr if_statement() {
-		if (match(TokenType::LEFT_PAREN)) {
-			ExprPtr expr = expression();
-			consume(TokenType::RIGHT_PAREN, "Expect ')' after if.");
+		consume(TokenType::LEFT_PAREN, "Expect '(' after 'if'.");
+		ExprPtr expr = expression();
+		consume(TokenType::RIGHT_PAREN, "Expect ')' after if condition.");
 
-			StmtPtr if_stmt = statement();
+		StmtPtr if_branch = statement();
+		
+		StmtPtr else_branch = nullptr;
 
-			
-			StmtPtr else_stmt = nullptr;
-
-			if (match(TokenType::ELSE)) {
-				else_stmt = statement();
-			}
-
-			return create_statement<If>(expr, if_stmt, else_stmt);
+		if (match(TokenType::ELSE)) {
+			else_branch = statement();
 		}
-		throw error(peek(), "Expect '(' after if.");
+
+		return create_statement<If>(expr, if_branch, else_branch);
+	}
+	// whileStmt      → "while" "(" expression ")" statement ;
+	StmtPtr while_statement() {
+		consume(TokenType::LEFT_PAREN, "Expect '(' after 'while'.");
+		auto condition = expression();
+		consume(TokenType::RIGHT_PAREN, "Expect ')' after while condition.");
+
+		auto body = statement();
+		return create_statement<While>(condition, body);
 	}
 
 	// block          → "{" declaration* "}" ;

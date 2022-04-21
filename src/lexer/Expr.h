@@ -82,6 +82,27 @@ private:
 	Value m_value{};
 };
 
+class Logical final : public Expr {
+public:
+	Logical(ExprPtr left, Token op, ExprPtr right)
+		 : m_left(left), m_op(op), m_right(right) { }
+	Value accept(ExprVisitor* visitor) override;
+
+	ExprPtr left() const {
+		return m_left;
+	}
+	Token op() const {
+		return m_op;
+	}
+	ExprPtr right() const {
+		return m_right;
+	}
+private:
+	ExprPtr m_left{};
+	Token m_op{};
+	ExprPtr m_right{};
+};
+
 class Unary final : public Expr {
 public:
 	Unary(Token op, ExprPtr right)
@@ -118,6 +139,7 @@ public:
 	virtual Value visit_expr(Binary*) = 0;
 	virtual Value visit_expr(Grouping*) = 0;
 	virtual Value visit_expr(Literal*) = 0;
+	virtual Value visit_expr(Logical*) = 0;
 	virtual Value visit_expr(Unary*) = 0;
 	virtual Value visit_expr(Variable*) = 0;
 };
@@ -135,6 +157,10 @@ inline Value Grouping::accept(ExprVisitor* visitor) {
 }
 
 inline Value Literal::accept(ExprVisitor* visitor) {
+	return visitor->visit_expr(this);
+}
+
+inline Value Logical::accept(ExprVisitor* visitor) {
 	return visitor->visit_expr(this);
 }
 

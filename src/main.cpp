@@ -63,10 +63,10 @@ int main() {
 
     std::string source = R"(
 	var a = 3;
-	if (a == 1)
-		print "a == 1;
-	else
-		print "a != 1";
+	if (a == 2 or 1 == 1)
+		print "a == 1";
+	while (true)
+		print "hello, world!";
 	)";
     //std::string source = R"("test" == "othertest")";
     //std::string source = R"("test" == "othertest" != 3 * 3 > 4)";

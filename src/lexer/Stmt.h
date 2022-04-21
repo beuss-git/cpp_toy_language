@@ -45,23 +45,23 @@ private:
 
 class If final : public Stmt {
 public:
-	If(ExprPtr condition, StmtPtr thenBranch, StmtPtr elseBranch)
-		 : m_condition(condition), m_thenBranch(thenBranch), m_elseBranch(elseBranch) { }
+	If(ExprPtr condition, StmtPtr then_branch, StmtPtr else_branch)
+		 : m_condition(condition), m_then_branch(then_branch), m_else_branch(else_branch) { }
 	void accept(StmtVisitor* visitor) override;
 
 	ExprPtr condition() const {
 		return m_condition;
 	}
-	StmtPtr thenBranch() const {
-		return m_thenBranch;
+	StmtPtr then_branch() const {
+		return m_then_branch;
 	}
-	StmtPtr elseBranch() const {
-		return m_elseBranch;
+	StmtPtr else_branch() const {
+		return m_else_branch;
 	}
 private:
 	ExprPtr m_condition{};
-	StmtPtr m_thenBranch{};
-	StmtPtr m_elseBranch{};
+	StmtPtr m_then_branch{};
+	StmtPtr m_else_branch{};
 };
 
 class Print final : public Stmt {
@@ -94,6 +94,23 @@ private:
 	ExprPtr m_initializer{};
 };
 
+class While final : public Stmt {
+public:
+	While(ExprPtr condition, StmtPtr body)
+		 : m_condition(condition), m_body(body) { }
+	void accept(StmtVisitor* visitor) override;
+
+	ExprPtr condition() const {
+		return m_condition;
+	}
+	StmtPtr body() const {
+		return m_body;
+	}
+private:
+	ExprPtr m_condition{};
+	StmtPtr m_body{};
+};
+
 class StmtVisitor {
 public:
 	virtual void visit_stmt(Block*) = 0;
@@ -101,6 +118,7 @@ public:
 	virtual void visit_stmt(If*) = 0;
 	virtual void visit_stmt(Print*) = 0;
 	virtual void visit_stmt(Var*) = 0;
+	virtual void visit_stmt(While*) = 0;
 };
 
 inline void Block::accept(StmtVisitor* visitor) {
@@ -120,6 +138,10 @@ inline void Print::accept(StmtVisitor* visitor) {
 }
 
 inline void Var::accept(StmtVisitor* visitor) {
+	visitor->visit_stmt(this);
+}
+
+inline void While::accept(StmtVisitor* visitor) {
 	visitor->visit_stmt(this);
 }
 
