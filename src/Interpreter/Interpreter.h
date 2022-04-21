@@ -39,7 +39,9 @@ private:
 				execute(statement);
 			}
 		}
-		catch (const RuntimeError& err) { }
+		catch (const RuntimeError& err) {
+			m_toy.runtime_error(err);
+		}
 		m_environment = previous;
 	}
 
