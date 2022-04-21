@@ -102,9 +102,14 @@ int main() {
 	//)";
 
     std::string source = R"(
-	func test() {
+	var a;
+	fun test() {
+		print "test";
 	}
+	a();
 	test();
+	//print test();
+	//print test;
 	)";
     //std::string source = R"("test" == "othertest")";
     //std::string source = R"("test" == "othertest" != 3 * 3 > 4)";

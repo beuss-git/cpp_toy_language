@@ -10,18 +10,16 @@
 #include "../Lexer/Environment.h"
 #include "../Toy.h"
 
-
-
-class Callable : public Value {
+class ToyCallable : public Value {
 public:
 	virtual int arity() = 0;
 	virtual ValuePtr call(Interpreter*, std::vector<ValuePtr> arguments) = 0;
 };
 
-class CallableClock final : public Callable {
+class ToyClock final : public ToyCallable {
 public:
 	int arity() override { return 0; }
-	ValuePtr call(Interpreter*, std::vector<ValuePtr> arguments) override {
+	ValuePtr call(Interpreter*, std::vector<ValuePtr>) override {
 		auto now = std::chrono::system_clock::now();
 		auto seconds = std::chrono::duration_cast<std::chrono::seconds>(now.time_since_epoch());
 		return create_value((double)seconds.count());
@@ -30,10 +28,11 @@ public:
 		return "<native fn>";
 	}
 };
+class ToyFunction;
 class Interpreter final : public ExprVisitor, public StmtVisitor {
 public:
 	Interpreter(Toy& toy) : m_toy(toy), m_globals({}), m_environment(&m_globals) {
-		m_globals.define("clock", create_value<CallableClock>());
+		m_globals.define("clock", create_value<ToyClock>());
 	}
 
 
@@ -47,8 +46,10 @@ public:
 			m_toy.runtime_error(e);
 		}
 	}
+	const Environment& globals() const {
+		return m_globals;
+	}
 
-private:
 	void execute(StmtPtr stmt) {
 		stmt->accept(this);
 	}
@@ -67,6 +68,7 @@ private:
 		}
 		m_environment = *previous;
 	}
+private:
 
 	void visit_stmt(If* stmt) override {
 		if (is_truthy(evaluate(stmt->condition()))) {
@@ -182,16 +184,13 @@ private:
 			arguments.push_back(evaluate(argument));
 		}
 
-		// Yikes, improve this for next iteration
-
-		if (typeid(callee).name() == typeid(Callable).name()) {
-			auto* function = (Callable*)&callee;
+		if (auto* function = dynamic_cast<ToyCallable*>(callee.get()); function) {
 			if (arguments.size() != function->arity()) {
 				throw RuntimeError(expr->paren(),
 					"Expected " + std::to_string(function->arity()) + " arguments but got "
 					+ std::to_string(arguments.size()) + ".");
 			}
-			function->call(this, arguments);
+			return function->call(this, arguments);
 		}
 
 		throw RuntimeError(expr->paren(), "Can only call functions and classes.");
@@ -199,6 +198,10 @@ private:
 
 	void visit_stmt(Expression* stmt) override {
 		evaluate(stmt->expression());
+	}
+
+	void visit_stmt(Function* stmt) {
+		m_environment.define(stmt->name().lexeme(), create_value<ToyFunction>(stmt));
 	}
 
 	void visit_stmt(For* stmt) override {
@@ -289,4 +292,26 @@ private:
 	Toy& m_toy;
 	Environment m_globals{};
 	Environment m_environment{};
+};
+
+class ToyFunction final : public ToyCallable {
+public:
+	ToyFunction(Function* declaration) {
+		m_declaration = declaration;
+	}
+	int arity() override { return m_declaration->params().size(); }
+	ValuePtr call(Interpreter* interpreter, std::vector<ValuePtr> arguments) override {
+		Environment environment(interpreter->globals());
+		
+		for (int i = 0; i < m_declaration->params().size(); i++) {
+			environment.define(m_declaration->params().at(i).lexeme(), arguments.at(i));
+		}
+		interpreter->execute_block(m_declaration->body(), environment);
+		return nullptr;
+	}
+	std::string to_string() const override {
+		return "<fn " + m_declaration->name().lexeme() + ">";
+	}
+private:
+	Function* m_declaration;
 };

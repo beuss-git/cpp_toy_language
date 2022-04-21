@@ -11,8 +11,13 @@
 /*
 	program        → statement* EOF ;
 
-	declaration    → varDecl
+	declaration    → funDecl
+				   | varDecl ;
 				   | statement ;
+
+	funDecl        → "fun" function ;
+	function       → IDENTIFIER "(" parameters? ")" block ;
+	parameters     → IDENTIFIER ( "," IDENTIFIER )* ;
 
 	varDecl        → "var" IDENTIFIER ( "=" expression )? ";" ;
 
@@ -250,34 +255,30 @@ private:
 
 
 	// call           → primary ( "(" arguments? ")" )* ;
-	// (1, 2)(2,4)
 	ExprPtr call() {
-		auto callee = primary();
-		Token right_paren{};
-		ExprPtr expr = nullptr;
+		ExprPtr expr = primary();
 		while (match(TokenType::LEFT_PAREN)) {
-
-			auto args = arguments();
-			right_paren = consume(TokenType::RIGHT_PAREN, "Expect ')'.");
-
-			expr = create_expression<Call>(callee, right_paren, args);
+			expr = arguments(expr);
 		}
 		return expr;
 	}
-	//arguments      → expression ( "," expression )* ;
-	std::vector<ExprPtr> arguments() {
 
+	// arguments      → expression ( "," expression )* ;
+	ExprPtr arguments(ExprPtr callee) {
 		std::vector<ExprPtr> args{};
-		args.push_back(expression());
-		while (match(TokenType::COMMA)) {
-			if (args.size() >= 255) {
-				error(peek(), "You can't have more than 255 arguments.");
-			}
-			args.push_back(expression());
+		// Handle if there are arguments
+		if (!check(TokenType::RIGHT_PAREN)) {
+			do {
+				args.push_back(expression());
+			} while (match(TokenType::COMMA));
 		}
-		return args;
-	}
+		Token paren = consume(TokenType::RIGHT_PAREN, "Expect ')' after arguments.");
 
+		if (args.size() >= 255) {
+			error(peek(), "You can't have more than 255 arguments.");
+		}
+		return create_expression<Call>(callee, paren, args);
+	}
 
 	// primary        → NUMBER | STRING | "true" | "false" | "nil"
 	//				   | "(" expression ")"
@@ -308,6 +309,7 @@ private:
 	//				| statement ;
 	StmtPtr declaration() {
 		try {
+			if (match(TokenType::FUN)) return fun_declaration("function");
 			if (match(TokenType::VAR)) return var_declaration();
 			return statement();
 		} catch (const ParseError& error) {
@@ -315,6 +317,32 @@ private:
 			return nullptr;
 		}
 	}
+
+	// funDecl        → "fun" function ;
+	// function       → IDENTIFIER "(" parameters? ")" block ;
+	// parameters     → IDENTIFIER ( "," IDENTIFIER )* ;
+	StmtPtr fun_declaration(std::string kind) {
+
+		Token name = consume(TokenType::IDENTIFIER, "Expect " + kind + " name.");
+		consume(TokenType::LEFT_PAREN, "Expect '(' after " + kind + " name.");
+
+		std::vector<Token> params{};
+		if (!check(TokenType::RIGHT_PAREN)) {
+			do {
+				if (params.size() >= 255) {
+					error(peek(), "Can't have more than 255 parameters.");
+				}
+				params.push_back(consume(TokenType::IDENTIFIER, "Expect parameter name."));
+			} while (match(TokenType::COMMA));
+		}
+
+		consume(TokenType::RIGHT_PAREN, "Expect ')' after parameters.");
+
+		consume(TokenType::LEFT_BRACE, "Expect '{' before " + kind + " body.");
+		std::vector<StmtPtr> body{ block() };
+		return create_statement<Function>(name, params, body);
+	}
+
 	// varDecl        → "var" IDENTIFIER ( "=" expression )? ";" ;
 	StmtPtr var_declaration() {
 		Token name = consume(TokenType::IDENTIFIER, "Expect variable name.");

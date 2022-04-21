@@ -59,6 +59,27 @@ private:
 	ExprPtr m_expression{};
 };
 
+class Function final : public Stmt {
+public:
+	Function(Token name, std::vector<Token> params, std::vector<StmtPtr> body)
+		 : m_name(name), m_params(params), m_body(body) { }
+	void accept(StmtVisitor* visitor) override;
+
+	Token name() const {
+		return m_name;
+	}
+	std::vector<Token> params() const {
+		return m_params;
+	}
+	std::vector<StmtPtr> body() const {
+		return m_body;
+	}
+private:
+	Token m_name{};
+	std::vector<Token> m_params{};
+	std::vector<StmtPtr> m_body{};
+};
+
 class For final : public Stmt {
 public:
 	For(StmtPtr initializer, ExprPtr condition, ExprPtr increment, StmtPtr body)
@@ -175,6 +196,7 @@ public:
 	virtual void visit_stmt(Break*) = 0;
 	virtual void visit_stmt(Continue*) = 0;
 	virtual void visit_stmt(Expression*) = 0;
+	virtual void visit_stmt(Function*) = 0;
 	virtual void visit_stmt(For*) = 0;
 	virtual void visit_stmt(If*) = 0;
 	virtual void visit_stmt(Print*) = 0;
@@ -196,6 +218,10 @@ inline void Continue::accept(StmtVisitor* visitor) {
 }
 
 inline void Expression::accept(StmtVisitor* visitor) {
+	visitor->visit_stmt(this);
+}
+
+inline void Function::accept(StmtVisitor* visitor) {
 	visitor->visit_stmt(this);
 }
 
