@@ -65,6 +65,8 @@ private:
     }
 
     void string() {
+		// Keep track of where the string started for error reporting
+		int original_line = m_line;
         // Advance until we find the closing "
         while (peek() != '"' && !has_reached_end()) {
             // We allow newlines in string
@@ -72,7 +74,7 @@ private:
             advance();
         }
         if (has_reached_end()) {
-            m_toy.error(m_line, "Unterminated string");
+            m_toy.error(original_line, "Unterminated string");
             return;
         }
         // Advance closing "
