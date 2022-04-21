@@ -6,7 +6,7 @@
 class Environment {
 public:
 	Environment() = default;
-	Environment(const std::shared_ptr<Environment>& enclosing) : m_enclosing(enclosing) {}
+	Environment(Environment* enclosing) : m_enclosing(enclosing) {}
 
 	void define(std::string name, Value value) {
 		m_values[name] = value;
@@ -16,6 +16,9 @@ public:
 		if (const auto it = m_values.find(name.lexeme()); it != m_values.end()) {
 			return it->second;
 		}
+		if (m_enclosing != nullptr) {
+			return m_enclosing->get(name);
+		}
 		throw RuntimeError(name, "Undefined variable '" + name.lexeme() + "'.");
 	}
 
@@ -24,9 +27,14 @@ public:
 			it->second = value;
 			return;
 		}
+
+		if (m_enclosing != nullptr) {
+			m_enclosing->assign(name, value);
+			return;
+		}
 		throw RuntimeError(name, "Undefined Variable '" + name.lexeme() + "'.");
 	}
 private:
 	std::unordered_map<std::string, Value> m_values{};
-	std::shared_ptr<Environment> m_enclosing{nullptr};
+	Environment* m_enclosing{nullptr};
 };

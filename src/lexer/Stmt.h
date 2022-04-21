@@ -17,6 +17,19 @@ public:
 
 using StmtPtr = std::shared_ptr<Stmt>;
 
+class Block final : public Stmt {
+public:
+	Block(std::vector<StmtPtr> statements)
+		 : m_statements(statements) { }
+	void accept(StmtVisitor* visitor) override;
+
+	std::vector<StmtPtr> statements() const {
+		return m_statements;
+	}
+private:
+	std::vector<StmtPtr> m_statements{};
+};
+
 class Expression final : public Stmt {
 public:
 	Expression(ExprPtr expression)
@@ -62,10 +75,15 @@ private:
 
 class StmtVisitor {
 public:
+	virtual void visit_stmt(Block*) = 0;
 	virtual void visit_stmt(Expression*) = 0;
 	virtual void visit_stmt(Print*) = 0;
 	virtual void visit_stmt(Var*) = 0;
 };
+
+inline void Block::accept(StmtVisitor* visitor) {
+	visitor->visit_stmt(this);
+}
 
 inline void Expression::accept(StmtVisitor* visitor) {
 	visitor->visit_stmt(this);

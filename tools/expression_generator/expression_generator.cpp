@@ -198,6 +198,7 @@ int main() {
 		"Variable | Token name"
 	});
 	define_ast(output_dir, "Stmt", "void", std::vector<std::string>{
+		"Block		| std::vector<StmtPtr> statements",
 		"Expression	| ExprPtr expression",
 		"Print		| ExprPtr expression",
 		"Var		| Token name; ExprPtr initializer",

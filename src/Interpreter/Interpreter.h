@@ -1,4 +1,5 @@
 #pragma once
+#include <utility>
 #include <vector>
 
 
@@ -28,6 +29,22 @@ public:
 private:
 	void execute(StmtPtr stmt) {
 		stmt->accept(this);
+	}
+
+	void execute_block(std::vector<StmtPtr> statements, Environment environment) {
+		auto previous = m_environment;
+		try {
+			m_environment = std::move(environment);
+			for (auto statement : statements) {
+				execute(statement);
+			}
+		}
+		catch (const RuntimeError& err) { }
+		m_environment = previous;
+	}
+
+	void visit_stmt(Block* stmt) override {
+		execute_block(stmt->statements(), Environment(m_environment));
 	}
 
 	Value visit_expr(Literal* expr) override {
@@ -107,7 +124,7 @@ private:
 
 	void visit_stmt(Print* stmt) override {
 		auto value = evaluate(stmt->expression());
-		std::cout << value.to_string();
+		std::cout << value.to_string() << "\n";
 	}
 
 	void visit_stmt(Var* stmt) override {

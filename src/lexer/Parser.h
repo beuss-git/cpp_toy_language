@@ -17,7 +17,10 @@
 	varDecl        → "var" IDENTIFIER ( "=" expression )? ";" ;
 
 	statement      → exprStmt
-				   | printStmt ;
+				   | printStmt
+				   | block;
+
+	block          → "{" declaration* "}" ;
 
 	exprStmt       → expression ";" ;
 	printStmt      → "print" expression ";" ;
@@ -243,9 +246,22 @@ private:
 
 	//statement      → exprStmt
 	//				| printStmt ;
+	//				| block
 	StmtPtr statement() {
 		if (match(TokenType::PRINT)) return print_statement();
+		if (match(TokenType::LEFT_BRACE)) return block();
 		return expression_statement();
+	}
+
+	// block          → "{" declaration* "}" ;
+	StmtPtr block() {
+		std::vector<StmtPtr> statements{};
+		while (!check(TokenType::RIGHT_BRACE) && !has_reached_end()) {
+			statements.push_back(declaration());
+		}
+
+		consume(TokenType::RIGHT_BRACE, "Expect '}' after block.");
+		return create_statement<Block>(statements);
 	}
 
 	// exprStmt       → expression ";" ;
