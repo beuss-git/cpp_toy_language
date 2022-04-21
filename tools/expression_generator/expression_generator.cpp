@@ -1,4 +1,4 @@
-﻿#include <iostream>
+#include <iostream>
 #include <fstream>
 #include <vector>
 #include <sstream>
@@ -54,18 +54,23 @@ void define_type(std::fstream& f, std::string base_name, std::string return_type
 		const auto& field = fields.at(i);
 		f << field << (i == fields.size() - 1 ? "" : ",");
 	}
-	f << ")\n";
-	// Indent
-	f << "\t\t : ";
+	if (!fields.empty()) {
+		f << ")\n";
+		// Indent
+		f << "\t\t : ";
 
-	// Initialize fields
-	for (size_t i = 0; i < fields.size(); i++) {
-		const auto& field = fields.at(i);
-		std::string field_name = split(field, " ").at(1);
-		f << "m_" << field_name << "(" << field_name << ")" << (i == fields.size() - 1 ? "" : ", ");
+		// Initialize fields
+		for (size_t i = 0; i < fields.size(); i++) {
+			const auto& field = fields.at(i);
+			std::string field_name = split(field, " ").at(1);
+			f << "m_" << field_name << "(" << field_name << ")" << (i == fields.size() - 1 ? "" : ", ");
+		}
+		f << " { }\n";
+	}
+	else {
+		f << ") {} \n";
 	}
 
-	f << " { }\n";
 
 	// Accept override
 	f << "\t"<< return_type << " accept(" << base_name << "Visitor* visitor) override;\n\n";
