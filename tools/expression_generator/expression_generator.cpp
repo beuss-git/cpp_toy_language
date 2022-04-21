@@ -203,6 +203,7 @@ int main() {
 		"Expression	| ExprPtr expression",
 		"If			| ExprPtr condition; StmtPtr then_branch; StmtPtr else_branch",
 		"Print		| ExprPtr expression",
+		"Sleep		| Token token; ExprPtr expression",
 		"Var			| Token name; ExprPtr initializer",
 		"While        | ExprPtr condition; StmtPtr body"
 	});

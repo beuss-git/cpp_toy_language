@@ -1,6 +1,7 @@
 #pragma once
 #include <utility>
 #include <vector>
+#include <thread>
 
 
 #include "../Lexer/Errors.h"
@@ -149,6 +150,14 @@ private:
 	void visit_stmt(Print* stmt) override {
 		auto value = evaluate(stmt->expression());
 		std::cout << value.to_string() << "\n";
+	}
+
+	void visit_stmt(Sleep* stmt) override {
+		auto value = evaluate(stmt->expression());
+		if (!value.is_number()) {
+			throw RuntimeError(stmt->token(), "sleep only accepts numbers");
+		}
+		std::this_thread::sleep_for(std::chrono::milliseconds((int)value.as_double()));
 	}
 
 	void visit_stmt(Var* stmt) override {

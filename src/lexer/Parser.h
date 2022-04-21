@@ -19,6 +19,7 @@
 	statement      → exprStmt
 				   | ifStmt
 				   | printStmt
+				   | sleepStmt
 				   | whileStmt
 				   | block ;
 
@@ -31,6 +32,7 @@
 
 	exprStmt       → expression ";" ;
 	printStmt      → "print" expression ";" ;
+	sleepStmt      → "sleep" expression ";" ;
 
 	expression     → assignment ;
 	assignment     → IDENTIFIER "=" assignment
@@ -286,6 +288,7 @@ private:
 	StmtPtr statement() {
 		if (match(TokenType::IF)) return if_statement();
 		if (match(TokenType::PRINT)) return print_statement();
+		if (match(TokenType::SLEEP)) return sleep_statement();
 		if (match(TokenType::WHILE)) return while_statement();
 		if (match(TokenType::LEFT_BRACE)) return block();
 		return expression_statement();
@@ -342,6 +345,13 @@ private:
 		auto value = expression();
 		consume(TokenType::SEMICOLON, "Expect ';' after value.");
 		return create_statement<Print>(value);
+	}
+
+	// sleepStmt      → "sleep" expression ";" ;
+	StmtPtr sleep_statement() {
+		auto value = expression();
+		consume(TokenType::SEMICOLON, "Expect ';' after value.");
+		return create_statement<Sleep>(previous(), value);
 	}
 
 	// Synchronize to a 'valid' state

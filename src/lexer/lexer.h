@@ -156,5 +156,6 @@ private:
             {"var",    TokenType::VAR},
             {"nil",    TokenType::NIL},
             {"print",  TokenType::PRINT},
+            {"sleep",  TokenType::SLEEP},
     };
 };

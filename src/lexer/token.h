@@ -38,6 +38,7 @@ enum class TokenType {
     NIL, // Also literal
 
     PRINT,
+	SLEEP,
 
     TOKEN_EOF
 };
