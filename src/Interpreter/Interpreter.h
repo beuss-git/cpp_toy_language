@@ -168,9 +168,7 @@ private:
 			catch (const BreakException&) {
 				break;
 			}
-			catch (const ContinueException&) {
-				continue;
-			}
+			catch (const ContinueException&) { }
 
 			if (stmt->increment()) {
 				evaluate(stmt->increment());
@@ -208,9 +206,7 @@ private:
 			catch (const BreakException&) {
 				break;
 			}
-			catch (const ContinueException&) {
-				continue;
-			}
+			catch (const ContinueException&) { }
 		}
 	}
 
