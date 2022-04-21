@@ -209,6 +209,7 @@ int main() {
 		"Break		| ",
 		"Continue	| ",
 		"Expression	| ExprPtr expression",
+		"Function   | Token name; std::vector<Token> params; std::vector<StmtPtr> body",
 		"For		| StmtPtr initializer; ExprPtr condition; ExprPtr increment; StmtPtr body",
 		"If			| ExprPtr condition; StmtPtr then_branch; StmtPtr else_branch",
 		"Print		| ExprPtr expression",

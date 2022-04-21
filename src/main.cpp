@@ -53,13 +53,14 @@ int main() {
 //print a;
 //	)";
 //
-//    std::string source = R"(
-//var a = 1;
-//{
-//  var a = a + 2;
-//  print a;
-//}
-//	)";
+    std::string source = R"(
+var a = 1;
+{
+  var a = a + 2;
+  print a;
+}
+print a;
+	)";
 
  //   std::string source = R"(
 	////var a = 3;
@@ -101,11 +102,18 @@ int main() {
 	//}
 	//)";
 
-    std::string source = R"(
-	func test() {
-	}
-	test();
-	)";
+ //   std::string source = R"(
+	//var a = 1;
+	////print a;
+	//fun test(aparam) {
+	//	aparam = 3;
+	//	print aparam;
+	//}
+	//test(a);
+	//print a;
+	////print test();
+	////print test;
+	//)";
     //std::string source = R"("test" == "othertest")";
     //std::string source = R"("test" == "othertest" != 3 * 3 > 4)";
     //std::string source = R"(
