@@ -11,9 +11,30 @@
 #include "../Toy.h"
 
 
+
+class Callable : public Value {
+public:
+	virtual int arity() = 0;
+	virtual ValuePtr call(Interpreter*, std::vector<ValuePtr> arguments) = 0;
+};
+
+class CallableClock final : public Callable {
+public:
+	int arity() override { return 0; }
+	ValuePtr call(Interpreter*, std::vector<ValuePtr> arguments) override {
+		auto now = std::chrono::system_clock::now();
+		auto seconds = std::chrono::duration_cast<std::chrono::seconds>(now.time_since_epoch());
+		return create_value((double)seconds.count());
+	}
+	std::string to_string() const override {
+		return "<native fn>";
+	}
+};
 class Interpreter final : public ExprVisitor, public StmtVisitor {
 public:
-	Interpreter(Toy& toy) : m_toy(toy){}
+	Interpreter(Toy& toy) : m_toy(toy), m_globals({}), m_environment(&m_globals) {
+		m_globals.define("clock", create_value<CallableClock>());
+	}
 
 
 	void interpret(const std::vector<StmtPtr>& statements) {
@@ -70,10 +91,10 @@ private:
 		throw ContinueException{};
 	}
 
-	Value visit_expr(Literal* expr) override {
+	ValuePtr visit_expr(Literal* expr) override {
 		return expr->value();
 	}
-	Value visit_expr(Logical* expr) override {
+	ValuePtr visit_expr(Logical* expr) override {
 		auto left = evaluate(expr->left());
 		// Short circuit OR if lhs is true
 		if (expr->op().type() == TokenType::OR) {
@@ -85,21 +106,21 @@ private:
 		}
 		return evaluate(expr->right());
 	}
-	Value visit_expr(Grouping* expr) override {
+	ValuePtr visit_expr(Grouping* expr) override {
 		return evaluate(expr->expression());
 	}
-	Value visit_expr(Unary* expr) override {
+	ValuePtr visit_expr(Unary* expr) override {
 		auto right = evaluate(expr->right());
 		switch(expr->op().type()) {
 			case TokenType::BANG:
-				return !is_truthy(right);
+				return create_value(!is_truthy(right));
 			case TokenType::MINUS:
 				check_number_operand(expr->op(), right);
-				return -right.as_double();
+				return create_value(-right->as_double());
 		}
 		return nullptr;
 	}
-	Value visit_expr(Binary* expr) override {
+	ValuePtr visit_expr(Binary* expr) override {
 		const auto left = evaluate(expr->left());
 		const auto right = evaluate(expr->right());
 
@@ -107,50 +128,73 @@ private:
 			// Comparison
 			case TokenType::GREATER:
 				check_number_operands(expr->op(), left, right);
-				return left.as_double() > right.as_double();
+				return create_value(left->as_double() > right->as_double());
 			case TokenType::GREATER_EQUAL:
 				check_number_operands(expr->op(), left, right);
-				return left.as_double() >= right.as_double();
+				return create_value(left->as_double() >= right->as_double());
 			case TokenType::LESS:
 				check_number_operands(expr->op(), left, right);
-				return left.as_double() < right.as_double();
+				return create_value(left->as_double() < right->as_double());
 			case TokenType::LESS_EQUAL:
 				check_number_operands(expr->op(), left, right);
-				return left.as_double() <= right.as_double();
+				return create_value(left->as_double() <= right->as_double());
 
 			case TokenType::BANG_EQUAL: 
-				return left != right;
+				return create_value(left != right);
 			case TokenType::EQUAL_EQUAL: 
-				return left == right;
+				return create_value(left == right);
 
 			// Arithmetic
 			case TokenType::MINUS:
 				check_number_operands(expr->op(), left, right);
-				return left.as_double() - right.as_double();
+				return create_value(left->as_double() - right->as_double());
 			case TokenType::PLUS:
-				if (left.is_number() && right.is_number()) {
-					return left.as_double() + right.as_double();
+				if (left->is_number() && right->is_number()) {
+					return create_value(left->as_double() + right->as_double());
 				}
 				//if (left.is_string() && right.is_string()) {
 				//	return left.as_string() + right.as_string();
 				//}
 				// Allow either to be strings
-				if (left.is_string() || right.is_string()) {
-					return left.as_string() + right.as_string();
+				if (left->is_string() || right->is_string()) {
+					return create_value(left->as_string() + right->as_string());
 				}
 				//throw RuntimeError(expr->op(), "Operands must be two numbers or two strings.");
 				throw RuntimeError(expr->op(), "Invalid operands.");
 			case TokenType::SLASH:
 				check_number_operands(expr->op(), left, right);
-				if (right.as_double() == 0.0) {
+				if (right->as_double() == 0.0) {
 					throw RuntimeError(expr->op(), "Division by zero.");
 				}
-				return left.as_double() / right.as_double();
+				return create_value(left->as_double() / right->as_double());
 			case TokenType::STAR:
 				check_number_operands(expr->op(), left, right);
-				return left.as_double() * right.as_double();
+				return create_value(left->as_double() * right->as_double());
 		}
 		return nullptr;
+	}
+	ValuePtr visit_expr(Call* expr) override {
+		auto callee = evaluate(expr->callee());
+
+		std::vector<ValuePtr> arguments{};
+		arguments.resize(expr->arguments().size());
+		for (const auto& argument : expr->arguments()) {
+			arguments.push_back(evaluate(argument));
+		}
+
+		// Yikes, improve this for next iteration
+
+		if (typeid(callee).name() == typeid(Callable).name()) {
+			auto* function = (Callable*)&callee;
+			if (arguments.size() != function->arity()) {
+				throw RuntimeError(expr->paren(),
+					"Expected " + std::to_string(function->arity()) + " arguments but got "
+					+ std::to_string(arguments.size()) + ".");
+			}
+			function->call(this, arguments);
+		}
+
+		throw RuntimeError(expr->paren(), "Can only call functions and classes.");
 	}
 
 	void visit_stmt(Expression* stmt) override {
@@ -178,20 +222,20 @@ private:
 
 	void visit_stmt(Print* stmt) override {
 		auto value = evaluate(stmt->expression());
-		std::cout << value.to_string() << "\n";
+		std::cout << value->to_string() << "\n";
 	}
 
 	void visit_stmt(Sleep* stmt) override {
 		auto value = evaluate(stmt->expression());
-		if (!value.is_number()) {
+		if (!value->is_number()) {
 			throw RuntimeError(stmt->token(), "sleep only accepts numbers");
 		}
-		std::this_thread::sleep_for(std::chrono::milliseconds((int)value.as_double()));
+		std::this_thread::sleep_for(std::chrono::milliseconds((int)value->as_double()));
 	}
 
 	void visit_stmt(Var* stmt) override {
 		// Don't require initializer, set to nil
-		Value value = nullptr;
+		ValuePtr value = nullptr;
 		if (stmt->initializer()) {
 			value = evaluate(stmt->initializer());
 		}
@@ -210,38 +254,39 @@ private:
 		}
 	}
 
-	Value visit_expr(Variable* expr) override {
+	ValuePtr visit_expr(Variable* expr) override {
 		return m_environment.get(expr->name());
 	}
 
-	Value visit_expr(Assign* expr) {
+	ValuePtr visit_expr(Assign* expr) {
 		auto value = evaluate(expr->value());
 		m_environment.assign(expr->name(), value);
 		return value;
 	}
 
-	Value evaluate(ExprPtr expr) {
+	ValuePtr evaluate(ExprPtr expr) {
 		return expr->accept(this);
 	}
-	bool is_truthy(Value value) {
-		if (value.is_bool()) return value.as_bool();
+	bool is_truthy(ValuePtr value) {
+		if (value->is_bool()) return value->as_bool();
 
-		if (value.is_nil()) return false;
+		if (value->is_nil()) return false;
 
 		return true;
 
 	}
 
-	void check_number_operand(Token op, Value operand) const {
-		if (operand.is_number()) return;
+	void check_number_operand(Token op, ValuePtr operand) const {
+		if (operand->is_number()) return;
 		throw RuntimeError(op, "Operand must be a number.");
 	}
-	void check_number_operands(Token op, Value left, Value right) const {
-		if (left.is_number() && right.is_number()) return;
+	void check_number_operands(Token op, ValuePtr left, ValuePtr right) const {
+		if (left->is_number() && right->is_number()) return;
 		throw RuntimeError(op, "Operands must be numbers.");
 	}
 
 private:
 	Toy& m_toy;
+	Environment m_globals{};
 	Environment m_environment{};
 };

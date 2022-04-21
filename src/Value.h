@@ -38,7 +38,7 @@ public:
 		return m_type == Type::BOOL;
 	}
 
-	std::string to_string() const {
+	virtual std::string to_string() const {
 		switch (m_type) {
 			case Type::STRING: return "\"" + m_str_value + "\"";
 			case Type::BOOL: return m_value.as_bool ? "true" : "false";
@@ -106,4 +106,17 @@ private:
 
 inline std::ostream& operator<<(std::ostream& os, const Value& value) {
 	return os << value.to_string();
+}
+
+using ValuePtr = std::shared_ptr<Value>;
+
+
+template<typename T, typename... Args>
+inline ValuePtr create_value(Args&&... args) {
+	return std::make_shared<T>(std::forward<Args>(args)...);
+}
+
+template<typename... Args>
+inline ValuePtr create_value(Args&&... args) {
+	return std::make_shared<Value>(std::forward<Args>(args)...);
 }

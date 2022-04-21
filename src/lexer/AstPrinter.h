@@ -7,7 +7,7 @@
 class AstPrinter final : public ExprVisitor {
 public:
 	template <typename ... Exprs>
-	std::string parenthesize(std::string name, Exprs&& ... exprs) {
+	ValuePtr parenthesize(std::string name, Exprs&& ... exprs) {
 		std::stringstream ss;
 		ss << "(" << name;
 
@@ -16,23 +16,23 @@ public:
 			}(exprs), ...);
 
 		ss << ")";
-		return ss.str();
+		return create_value(ss.str());
 	}
 
-	Value print(ExprPtr expr) {
+	ValuePtr print(ExprPtr expr) {
 		return expr->accept(this);
 	}
 
-	Value visit_expr(Binary* expr) override {
+	ValuePtr visit_expr(Binary* expr) override {
 		return parenthesize(expr->op().lexeme(), expr->left(), expr->right());
 	}
-	Value visit_expr(Grouping* expr) override {
+	ValuePtr visit_expr(Grouping* expr) override {
 		return parenthesize("group", expr->expression());
 	}
-	Value visit_expr(Literal* expr) override {
+	ValuePtr visit_expr(Literal* expr) override {
 		return expr->value();
 	}
-	Value visit_expr(Unary* expr) override {
+	ValuePtr visit_expr(Unary* expr) override {
 		return parenthesize(expr->op().lexeme(), expr->right());
 	}
 };

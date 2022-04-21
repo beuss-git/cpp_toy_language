@@ -10,9 +10,9 @@
 class ExprVisitor;
 class Expr {
 public:
-	virtual Value accept(ExprVisitor * visitor) {
+	virtual ValuePtr accept(ExprVisitor * visitor) {
 		assert(false, "Not implemented");
-return {};
+		return {};
 	}
 };
 
@@ -22,7 +22,7 @@ class Assign final : public Expr {
 public:
 	Assign(Token name, ExprPtr value)
 		 : m_name(name), m_value(value) { }
-	Value accept(ExprVisitor* visitor) override;
+	ValuePtr accept(ExprVisitor* visitor) override;
 
 	Token name() const {
 		return m_name;
@@ -39,7 +39,7 @@ class Binary final : public Expr {
 public:
 	Binary(ExprPtr left, Token op, ExprPtr right)
 		 : m_left(left), m_op(op), m_right(right) { }
-	Value accept(ExprVisitor* visitor) override;
+	ValuePtr accept(ExprVisitor* visitor) override;
 
 	ExprPtr left() const {
 		return m_left;
@@ -56,11 +56,32 @@ private:
 	ExprPtr m_right{};
 };
 
+class Call final : public Expr {
+public:
+	Call(ExprPtr callee, Token paren, std::vector<ExprPtr> arguments)
+		 : m_callee(callee), m_paren(paren), m_arguments(arguments) { }
+	ValuePtr accept(ExprVisitor* visitor) override;
+
+	ExprPtr callee() const {
+		return m_callee;
+	}
+	Token paren() const {
+		return m_paren;
+	}
+	std::vector<ExprPtr> arguments() const {
+		return m_arguments;
+	}
+private:
+	ExprPtr m_callee{};
+	Token m_paren{};
+	std::vector<ExprPtr> m_arguments{};
+};
+
 class Grouping final : public Expr {
 public:
 	Grouping(ExprPtr expression)
 		 : m_expression(expression) { }
-	Value accept(ExprVisitor* visitor) override;
+	ValuePtr accept(ExprVisitor* visitor) override;
 
 	ExprPtr expression() const {
 		return m_expression;
@@ -71,22 +92,22 @@ private:
 
 class Literal final : public Expr {
 public:
-	Literal(Value value)
+	Literal(ValuePtr value)
 		 : m_value(value) { }
-	Value accept(ExprVisitor* visitor) override;
+	ValuePtr accept(ExprVisitor* visitor) override;
 
-	Value value() const {
+	ValuePtr value() const {
 		return m_value;
 	}
 private:
-	Value m_value{};
+	ValuePtr m_value{};
 };
 
 class Logical final : public Expr {
 public:
 	Logical(ExprPtr left, Token op, ExprPtr right)
 		 : m_left(left), m_op(op), m_right(right) { }
-	Value accept(ExprVisitor* visitor) override;
+	ValuePtr accept(ExprVisitor* visitor) override;
 
 	ExprPtr left() const {
 		return m_left;
@@ -107,7 +128,7 @@ class Unary final : public Expr {
 public:
 	Unary(Token op, ExprPtr right)
 		 : m_op(op), m_right(right) { }
-	Value accept(ExprVisitor* visitor) override;
+	ValuePtr accept(ExprVisitor* visitor) override;
 
 	Token op() const {
 		return m_op;
@@ -124,7 +145,7 @@ class Variable final : public Expr {
 public:
 	Variable(Token name)
 		 : m_name(name) { }
-	Value accept(ExprVisitor* visitor) override;
+	ValuePtr accept(ExprVisitor* visitor) override;
 
 	Token name() const {
 		return m_name;
@@ -135,40 +156,45 @@ private:
 
 class ExprVisitor {
 public:
-	virtual Value visit_expr(Assign*) = 0;
-	virtual Value visit_expr(Binary*) = 0;
-	virtual Value visit_expr(Grouping*) = 0;
-	virtual Value visit_expr(Literal*) = 0;
-	virtual Value visit_expr(Logical*) = 0;
-	virtual Value visit_expr(Unary*) = 0;
-	virtual Value visit_expr(Variable*) = 0;
+	virtual ValuePtr visit_expr(Assign*) = 0;
+	virtual ValuePtr visit_expr(Binary*) = 0;
+	virtual ValuePtr visit_expr(Call*) = 0;
+	virtual ValuePtr visit_expr(Grouping*) = 0;
+	virtual ValuePtr visit_expr(Literal*) = 0;
+	virtual ValuePtr visit_expr(Logical*) = 0;
+	virtual ValuePtr visit_expr(Unary*) = 0;
+	virtual ValuePtr visit_expr(Variable*) = 0;
 };
 
-inline Value Assign::accept(ExprVisitor* visitor) {
+inline ValuePtr Assign::accept(ExprVisitor* visitor) {
 	return visitor->visit_expr(this);
 }
 
-inline Value Binary::accept(ExprVisitor* visitor) {
+inline ValuePtr Binary::accept(ExprVisitor* visitor) {
 	return visitor->visit_expr(this);
 }
 
-inline Value Grouping::accept(ExprVisitor* visitor) {
+inline ValuePtr Call::accept(ExprVisitor* visitor) {
 	return visitor->visit_expr(this);
 }
 
-inline Value Literal::accept(ExprVisitor* visitor) {
+inline ValuePtr Grouping::accept(ExprVisitor* visitor) {
 	return visitor->visit_expr(this);
 }
 
-inline Value Logical::accept(ExprVisitor* visitor) {
+inline ValuePtr Literal::accept(ExprVisitor* visitor) {
 	return visitor->visit_expr(this);
 }
 
-inline Value Unary::accept(ExprVisitor* visitor) {
+inline ValuePtr Logical::accept(ExprVisitor* visitor) {
 	return visitor->visit_expr(this);
 }
 
-inline Value Variable::accept(ExprVisitor* visitor) {
+inline ValuePtr Unary::accept(ExprVisitor* visitor) {
+	return visitor->visit_expr(this);
+}
+
+inline ValuePtr Variable::accept(ExprVisitor* visitor) {
 	return visitor->visit_expr(this);
 }
 

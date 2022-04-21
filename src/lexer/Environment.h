@@ -8,11 +8,11 @@ public:
 	Environment() = default;
 	Environment(Environment* enclosing) : m_enclosing(enclosing) {}
 
-	void define(std::string name, Value value) {
+	void define(std::string name, ValuePtr value) {
 		m_values[name] = value;
 	}
 
-	Value get(Token name) {
+	ValuePtr get(Token name) {
 		if (const auto it = m_values.find(name.lexeme()); it != m_values.end()) {
 			return it->second;
 		}
@@ -22,7 +22,7 @@ public:
 		throw RuntimeError(name, "Undefined variable '" + name.lexeme() + "'.");
 	}
 
-	void assign(Token name, Value value) {
+	void assign(Token name, ValuePtr value) {
 		if (auto it = m_values.find(name.lexeme()); it != m_values.end()) {
 			it->second = value;
 			return;
@@ -35,6 +35,6 @@ public:
 		throw RuntimeError(name, "Undefined Variable '" + name.lexeme() + "'.");
 	}
 private:
-	std::unordered_map<std::string, Value> m_values{};
+	std::unordered_map<std::string, ValuePtr> m_values{};
 	Environment* m_enclosing{nullptr};
 };

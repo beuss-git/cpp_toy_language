@@ -122,7 +122,7 @@ void define_base_class(std::fstream& f, std::string base_name, std::string retur
 	f << "\tvirtual " << return_type << " accept(" << base_name << "Visitor * visitor) {\n";
 	f << "\t\tassert(false, \"Not implemented\");\n";
 	if (return_type != "void") {
-		f << "return {};\n";
+		f << "\t\treturn {};\n";
 	}
 	f << "\t}\n";
 
@@ -194,11 +194,12 @@ int main() {
 
 	static auto output_dir = R"(G:\repos\cpp_toy_language\src\lexer)";
 
-	define_ast(output_dir, "Expr", "Value", std::vector<std::string>{
+	define_ast(output_dir, "Expr", "ValuePtr", std::vector<std::string>{
 		"Assign   | Token name; ExprPtr value",
 		"Binary   | ExprPtr left; Token op; ExprPtr right",
+		"Call     | ExprPtr callee; Token paren; std::vector<ExprPtr> arguments",
 		"Grouping | ExprPtr expression",
-		"Literal  | Value value",
+		"Literal  | ValuePtr value",
 		"Logical  | ExprPtr left; Token op; ExprPtr right",
 		"Unary    | Token op; ExprPtr right",
 		"Variable | Token name"
@@ -206,14 +207,14 @@ int main() {
 	define_ast(output_dir, "Stmt", "void", std::vector<std::string>{
 		"Block		| std::vector<StmtPtr> statements",
 		"Break		| ",
-		"Continue		| ",
+		"Continue	| ",
 		"Expression	| ExprPtr expression",
-		"For			| StmtPtr initializer; ExprPtr condition; ExprPtr increment; StmtPtr body",
+		"For		| StmtPtr initializer; ExprPtr condition; ExprPtr increment; StmtPtr body",
 		"If			| ExprPtr condition; StmtPtr then_branch; StmtPtr else_branch",
 		"Print		| ExprPtr expression",
 		"Sleep		| Token token; ExprPtr expression",
-		"Var			| Token name; ExprPtr initializer",
-		"While        | ExprPtr condition; StmtPtr body"
+		"Var		| Token name; ExprPtr initializer",
+		"While      | ExprPtr condition; StmtPtr body"
 	});
 	return 0;
 }

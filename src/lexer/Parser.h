@@ -55,8 +55,9 @@
 	comparison     → term ( ( ">" | ">=" | "<" | "<=" ) term )* ;
 	term           → factor ( ( "-" | "+" ) factor )* ;
 	factor         → unary ( ( "/" | "*" ) unary )* ;
-	unary          → ( "!" | "-" ) unary
-				   | primary ;
+	unary          → ( "!" | "-" ) unary | call ;
+	call           → primary ( "(" arguments? ")" )* ;
+	arguments      → expression ( "," expression )* ;
 	primary        → NUMBER | STRING | "true" | "false" | "nil"
 				   | "(" expression ")"
 				   | IDENTIFIER ;
@@ -89,12 +90,6 @@ public:
 		} catch (const ParseError& error) {
 			return {};
 		}
-		//try {
-		//	return expression();
-		//}
-		//catch (const ParseError& error) {
-		//	return nullptr;
-		//}
 	}
 
 private:
@@ -243,15 +238,44 @@ private:
 	/*
 	 * Unary operators
 	 */
-	// unary          → ( "!" | "-" ) unary
-	//				| primary ;
+	// unary          → ( "!" | "-" ) unary | call ;
 	ExprPtr unary() {
 		if (match(TokenType::BANG, TokenType::MINUS)) {
 			Token op = previous();
 			ExprPtr right = unary();
 			return create_expression<Unary>(op, right);
 		}
-		return primary();
+		return call();
+	}
+
+
+	// call           → primary ( "(" arguments? ")" )* ;
+	// (1, 2)(2,4)
+	ExprPtr call() {
+		auto callee = primary();
+		Token right_paren{};
+		ExprPtr expr = nullptr;
+		while (match(TokenType::LEFT_PAREN)) {
+
+			auto args = arguments();
+			right_paren = consume(TokenType::RIGHT_PAREN, "Expect ')'.");
+
+			expr = create_expression<Call>(callee, right_paren, args);
+		}
+		return expr;
+	}
+	//arguments      → expression ( "," expression )* ;
+	std::vector<ExprPtr> arguments() {
+
+		std::vector<ExprPtr> args{};
+		args.push_back(expression());
+		while (match(TokenType::COMMA)) {
+			if (args.size() >= 255) {
+				error(peek(), "You can't have more than 255 arguments.");
+			}
+			args.push_back(expression());
+		}
+		return args;
 	}
 
 
@@ -259,12 +283,12 @@ private:
 	//				   | "(" expression ")"
 	//				   | IDENTIFIER ;
 	ExprPtr primary() {
-		if (match(TokenType::FALSE)) return create_expression<Literal>(false);
-		if (match(TokenType::TRUE)) return create_expression<Literal>(true);
-		if (match(TokenType::NIL)) return create_expression<Literal>(nullptr);
+		if (match(TokenType::FALSE)) return create_expression<Literal>(create_value(false));
+		if (match(TokenType::TRUE)) return create_expression<Literal>(create_value(true));
+		if (match(TokenType::NIL)) return create_expression<Literal>(create_value(nullptr));
 
 		if (match(TokenType::NUMBER, TokenType::STRING)) {
-			return create_expression<Literal>(previous().literal());
+			return create_expression<Literal>(create_value(previous().literal()));
 		}
 
 		if (match(TokenType::IDENTIFIER)) {
@@ -405,7 +429,7 @@ private:
 		if (m_loop_depth == 0) {
 			error(previous(), "'break' must be inside a loop.");
 		}
-		consume(TokenType::SEMICOLON, "Expect ';' after 'break'.");
+		consume(TokenType::BREAK, "Expect ';' after 'break'.");
 		return create_statement<Break>();
 	}
 

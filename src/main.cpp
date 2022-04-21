@@ -92,14 +92,19 @@ int main() {
 	////}
 	//)";
 
+ //   std::string source = R"(
+	//for (var i = 0; i < 10; i = i + 1) {
+	//	print "hello, world!: " + i;
+	//	
+	//	continue;
+	//	print "hello, world!2: " + i;
+	//}
+	//)";
+
     std::string source = R"(
-	for (var i = 0; i < 10; i = i + 1) {
-		print "hello, world!: " + i;
-		
-		break;
-		print "hello, world!2: " + i;
+	func test() {
 	}
-	break;
+	test();
 	)";
     //std::string source = R"("test" == "othertest")";
     //std::string source = R"("test" == "othertest" != 3 * 3 > 4)";
