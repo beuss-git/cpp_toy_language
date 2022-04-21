@@ -17,8 +17,12 @@
 	varDecl        → "var" IDENTIFIER ( "=" expression )? ";" ;
 
 	statement      → exprStmt
+				   | ifStmt
 				   | printStmt
-				   | block;
+				   | block ;
+
+	ifStmt         → "if" "(" expression ")" statement
+				   ( "else" statement )? ;
 
 	block          → "{" declaration* "}" ;
 
@@ -244,13 +248,37 @@ private:
 		return create_statement<Var>(name, initializer);
 	}
 
-	//statement      → exprStmt
-	//				| printStmt ;
-	//				| block
+	// statement      → exprStmt
+	//				| ifStmt
+	//				| printStmt
+	//				| block ;
 	StmtPtr statement() {
+		if (match(TokenType::IF)) return if_statement();
 		if (match(TokenType::PRINT)) return print_statement();
 		if (match(TokenType::LEFT_BRACE)) return block();
 		return expression_statement();
+	}
+
+
+	// ifStmt         → "if" "(" expression ")" statement
+	//				   ( "else" statement )? ;
+	StmtPtr if_statement() {
+		if (match(TokenType::LEFT_PAREN)) {
+			ExprPtr expr = expression();
+			consume(TokenType::RIGHT_PAREN, "Expect ')' after if.");
+
+			StmtPtr if_stmt = statement();
+
+			
+			StmtPtr else_stmt = nullptr;
+
+			if (match(TokenType::ELSE)) {
+				else_stmt = statement();
+			}
+
+			return create_statement<If>(expr, if_stmt, else_stmt);
+		}
+		throw error(peek(), "Expect '(' after if.");
 	}
 
 	// block          → "{" declaration* "}" ;

@@ -43,6 +43,27 @@ private:
 	ExprPtr m_expression{};
 };
 
+class If final : public Stmt {
+public:
+	If(ExprPtr condition, StmtPtr thenBranch, StmtPtr elseBranch)
+		 : m_condition(condition), m_thenBranch(thenBranch), m_elseBranch(elseBranch) { }
+	void accept(StmtVisitor* visitor) override;
+
+	ExprPtr condition() const {
+		return m_condition;
+	}
+	StmtPtr thenBranch() const {
+		return m_thenBranch;
+	}
+	StmtPtr elseBranch() const {
+		return m_elseBranch;
+	}
+private:
+	ExprPtr m_condition{};
+	StmtPtr m_thenBranch{};
+	StmtPtr m_elseBranch{};
+};
+
 class Print final : public Stmt {
 public:
 	Print(ExprPtr expression)
@@ -77,6 +98,7 @@ class StmtVisitor {
 public:
 	virtual void visit_stmt(Block*) = 0;
 	virtual void visit_stmt(Expression*) = 0;
+	virtual void visit_stmt(If*) = 0;
 	virtual void visit_stmt(Print*) = 0;
 	virtual void visit_stmt(Var*) = 0;
 };
@@ -86,6 +108,10 @@ inline void Block::accept(StmtVisitor* visitor) {
 }
 
 inline void Expression::accept(StmtVisitor* visitor) {
+	visitor->visit_stmt(this);
+}
+
+inline void If::accept(StmtVisitor* visitor) {
 	visitor->visit_stmt(this);
 }
 

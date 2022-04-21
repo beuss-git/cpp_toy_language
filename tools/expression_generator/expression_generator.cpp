@@ -200,8 +200,9 @@ int main() {
 	define_ast(output_dir, "Stmt", "void", std::vector<std::string>{
 		"Block		| std::vector<StmtPtr> statements",
 		"Expression	| ExprPtr expression",
+		"If			| ExprPtr condition; StmtPtr thenBranch; StmtPtr elseBranch",
 		"Print		| ExprPtr expression",
-		"Var		| Token name; ExprPtr initializer",
+		"Var			| Token name; ExprPtr initializer",
 	});
 	return 0;
 }

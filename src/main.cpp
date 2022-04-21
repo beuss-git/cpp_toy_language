@@ -42,26 +42,31 @@ int main() {
 	//print a;
 	//)";
 
+//    std::string source = R"(
+//var a = "global a";
+//{
+//	//var a = "inner a";
+//	print b;
+//	print a;
+//	var b;
+//}
+//print a;
+//	)";
+//
+//    std::string source = R"(
+//var a = 1;
+//{
+//  var a = a + 2;
+//  print a;
+//}
+//	)";
+
     std::string source = R"(
-var a = "global a";
-var b = "global b";
-var c = "global c";
-{
-  var a = "outer a";
-  var b = "outer b";
-  {
-    var a = "inner a";
-    print a;
-    print b;
-    print c;
-  }
-  print a;
-  print b;
-  print c;
-}
-print a;
-print b;
-print c;
+	var a = 3;
+	if (a == 1)
+		print "a == 1;
+	else
+		print "a != 1";
 	)";
     //std::string source = R"("test" == "othertest")";
     //std::string source = R"("test" == "othertest" != 3 * 3 > 4)";

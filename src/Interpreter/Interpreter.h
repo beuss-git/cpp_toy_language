@@ -45,6 +45,16 @@ private:
 		m_environment = previous;
 	}
 
+	void visit_stmt(If* stmt) override {
+		auto if_value = evaluate(stmt->condition());
+		if (if_value.as_bool()) {
+			execute(stmt->thenBranch());
+		}
+		else if (stmt->elseBranch()) {
+			execute(stmt->elseBranch());
+		}
+	}
+
 	void visit_stmt(Block* stmt) override {
 		execute_block(stmt->statements(), Environment(m_environment));
 	}
