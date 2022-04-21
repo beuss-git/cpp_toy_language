@@ -153,6 +153,8 @@ private:
             {"return", TokenType::RETURN},
             {"for",    TokenType::FOR},
             {"while",  TokenType::WHILE},
+            {"break",  TokenType::BREAK},
+            {"continue",  TokenType::CONTINUE},
             {"var",    TokenType::VAR},
             {"nil",    TokenType::NIL},
             {"print",  TokenType::PRINT},

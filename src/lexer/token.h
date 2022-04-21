@@ -33,7 +33,7 @@ enum class TokenType {
     IF, ELSE,
     TRUE, FALSE, // Also literals
     FUN, RETURN,
-    FOR, WHILE,
+    FOR, WHILE, BREAK, CONTINUE,
     VAR,
     NIL, // Also literal
 

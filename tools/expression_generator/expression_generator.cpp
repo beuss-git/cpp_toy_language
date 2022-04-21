@@ -1,4 +1,4 @@
-#include <iostream>
+﻿#include <iostream>
 #include <fstream>
 #include <vector>
 #include <sstream>
@@ -205,6 +205,8 @@ int main() {
 	});
 	define_ast(output_dir, "Stmt", "void", std::vector<std::string>{
 		"Block		| std::vector<StmtPtr> statements",
+		"Break		| ",
+		"Continue		| ",
 		"Expression	| ExprPtr expression",
 		"For			| StmtPtr initializer; ExprPtr condition; ExprPtr increment; StmtPtr body",
 		"If			| ExprPtr condition; StmtPtr then_branch; StmtPtr else_branch",

@@ -60,6 +60,16 @@ private:
 		execute_block(stmt->statements(), m_environment);
 	}
 
+	class BreakException : public std::exception {};
+	void visit_stmt(Break*) override {
+		throw BreakException{};
+	}
+
+	class ContinueException : public std::exception {};
+	void visit_stmt(Continue*) override {
+		throw ContinueException{};
+	}
+
 	Value visit_expr(Literal* expr) override {
 		return expr->value();
 	}
@@ -152,7 +162,15 @@ private:
 			execute(stmt->initializer());
 		}
 		while (!stmt->condition() || is_truthy(evaluate(stmt->condition()))) {
-			execute(stmt->body());
+			try {
+				execute(stmt->body());
+			}
+			catch (const BreakException&) {
+				break;
+			}
+			catch (const ContinueException&) {
+				continue;
+			}
 
 			if (stmt->increment()) {
 				evaluate(stmt->increment());
@@ -184,7 +202,15 @@ private:
 
 	void visit_stmt(While* stmt) override {
 		while (is_truthy(evaluate(stmt->condition()))) {
-			execute(stmt->body());
+			try {
+				execute(stmt->body());
+			}
+			catch (const BreakException&) {
+				break;
+			}
+			catch (const ContinueException&) {
+				continue;
+			}
 		}
 	}
 

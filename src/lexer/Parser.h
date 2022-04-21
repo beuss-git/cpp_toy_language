@@ -22,7 +22,9 @@
 				   | printStmt
 				   | sleepStmt
 				   | whileStmt
-				   | block ;
+				   | block
+				   | loopBreak
+				   | loopContinue;
 
 	forStmt        → "for" "(" ( varDecl | exprStmt | ";" )
 					 expression? ";"
@@ -34,6 +36,9 @@
 				   ( "else" statement )? ;
 
 	block          → "{" declaration* "}" ;
+
+	loopBreak      → "break" ;
+	loopContinue   → "continue ;
 
 	exprStmt       → expression ";" ;
 	printStmt      → "print" expression ";" ;
@@ -93,6 +98,18 @@ public:
 	}
 
 private:
+
+	class DepthCount {
+	public:
+		DepthCount(int& loop_depth) : m_loop_depth(loop_depth) {
+			m_loop_depth++;
+		}
+		~DepthCount() {
+			m_loop_depth--;
+		}
+	private:
+		int& m_loop_depth;
+	};
 
 	bool has_reached_end() const {
 		return m_tokens.at(m_current).type() == TokenType::TOKEN_EOF;
@@ -290,7 +307,9 @@ private:
 	//				| ifStmt
 	//				| printStmt
 	//				| whileStmt
-	//				| block ;
+	//				| block
+	//				| loopBreak
+	//				| loopContinue;
 	StmtPtr statement() {
 		if (match(TokenType::FOR)) return for_statement();
 		if (match(TokenType::IF)) return if_statement();
@@ -298,6 +317,8 @@ private:
 		if (match(TokenType::SLEEP)) return sleep_statement();
 		if (match(TokenType::WHILE)) return while_statement();
 		if (match(TokenType::LEFT_BRACE)) return block();
+		if (match(TokenType::BREAK)) return loop_break();
+		if (match(TokenType::CONTINUE)) return loop_continue();
 		return expression_statement();
 	}
 
@@ -306,6 +327,7 @@ private:
     //					expression? ")" statement ;
 	// This could have been done without the For statement class
 	StmtPtr for_statement() {
+		DepthCount c(m_loop_depth);
 		consume(TokenType::LEFT_PAREN, "Expect '(' after 'for'.");
 
 		StmtPtr initializer;
@@ -356,6 +378,8 @@ private:
 	}
 	// whileStmt      → "while" "(" expression ")" statement ;
 	StmtPtr while_statement() {
+		DepthCount c(m_loop_depth);
+
 		consume(TokenType::LEFT_PAREN, "Expect '(' after 'while'.");
 		auto condition = expression();
 		consume(TokenType::RIGHT_PAREN, "Expect ')' after while condition.");
@@ -373,6 +397,25 @@ private:
 
 		consume(TokenType::RIGHT_BRACE, "Expect '}' after block.");
 		return create_statement<Block>(statements);
+	}
+
+
+	// loopBreak      → "break" ;
+	StmtPtr loop_break() {
+		if (m_loop_depth == 0) {
+			error(previous(), "'break' must be inside a loop.");
+		}
+		consume(TokenType::SEMICOLON, "Expect ';' after 'break'.");
+		return create_statement<Break>();
+	}
+
+	// loopContinue   → "continue ;
+	StmtPtr loop_continue() {
+		if (m_loop_depth == 0) {
+			error(previous(), "'continue' must be inside a loop.");
+		}
+		consume(TokenType::SEMICOLON, "Expect ';' after 'continue'.");
+		return create_statement<Continue>();
 	}
 
 	// exprStmt       → expression ";" ;
@@ -423,4 +466,5 @@ private:
 	Toy& m_toy;
 	std::vector<Token> m_tokens{};
 	int m_current{ 0 };
+	int m_loop_depth{ 0 };
 };

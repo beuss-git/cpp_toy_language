@@ -30,6 +30,22 @@ private:
 	std::vector<StmtPtr> m_statements{};
 };
 
+class Break final : public Stmt {
+public:
+	Break() {} 
+	void accept(StmtVisitor* visitor) override;
+
+private:
+};
+
+class Continue final : public Stmt {
+public:
+	Continue() {} 
+	void accept(StmtVisitor* visitor) override;
+
+private:
+};
+
 class Expression final : public Stmt {
 public:
 	Expression(ExprPtr expression)
@@ -156,6 +172,8 @@ private:
 class StmtVisitor {
 public:
 	virtual void visit_stmt(Block*) = 0;
+	virtual void visit_stmt(Break*) = 0;
+	virtual void visit_stmt(Continue*) = 0;
 	virtual void visit_stmt(Expression*) = 0;
 	virtual void visit_stmt(For*) = 0;
 	virtual void visit_stmt(If*) = 0;
@@ -166,6 +184,14 @@ public:
 };
 
 inline void Block::accept(StmtVisitor* visitor) {
+	visitor->visit_stmt(this);
+}
+
+inline void Break::accept(StmtVisitor* visitor) {
+	visitor->visit_stmt(this);
+}
+
+inline void Continue::accept(StmtVisitor* visitor) {
 	visitor->visit_stmt(this);
 }
 
