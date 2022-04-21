@@ -31,8 +31,9 @@ private:
 		stmt->accept(this);
 	}
 
+	// Takes copy of current environment
 	void execute_block(std::vector<StmtPtr> statements, Environment environment) {
-		auto previous = m_environment;
+		auto* previous = &m_environment;
 		try {
 			m_environment = std::move(environment);
 			for (auto statement : statements) {
@@ -42,7 +43,7 @@ private:
 		catch (const RuntimeError& err) {
 			m_toy.runtime_error(err);
 		}
-		m_environment = previous;
+		m_environment = *previous;
 	}
 
 	void visit_stmt(If* stmt) override {
@@ -55,7 +56,7 @@ private:
 	}
 
 	void visit_stmt(Block* stmt) override {
-		execute_block(stmt->statements(), Environment(m_environment));
+		execute_block(stmt->statements(), m_environment);
 	}
 
 	Value visit_expr(Literal* expr) override {
