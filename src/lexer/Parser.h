@@ -17,11 +17,16 @@
 	varDecl        → "var" IDENTIFIER ( "=" expression )? ";" ;
 
 	statement      → exprStmt
+				   | forStmt
 				   | ifStmt
 				   | printStmt
 				   | sleepStmt
 				   | whileStmt
 				   | block ;
+
+	forStmt        → "for" "(" ( varDecl | exprStmt | ";" )
+					 expression? ";"
+					 expression? ")" statement ;
 
 	whileStmt      → "while" "(" expression ")" statement ;
 
@@ -281,17 +286,54 @@ private:
 	}
 
 	// statement      → exprStmt
+	//				| forStmt
 	//				| ifStmt
 	//				| printStmt
 	//				| whileStmt
 	//				| block ;
 	StmtPtr statement() {
+		if (match(TokenType::FOR)) return for_statement();
 		if (match(TokenType::IF)) return if_statement();
 		if (match(TokenType::PRINT)) return print_statement();
 		if (match(TokenType::SLEEP)) return sleep_statement();
 		if (match(TokenType::WHILE)) return while_statement();
 		if (match(TokenType::LEFT_BRACE)) return block();
 		return expression_statement();
+	}
+
+	// forStmt        → "for" "(" ( varDecl | exprStmt | ";" )
+    //					expression? ";"
+    //					expression? ")" statement ;
+	// This could have been done without the For statement class
+	StmtPtr for_statement() {
+		consume(TokenType::LEFT_PAREN, "Expect '(' after 'for'.");
+
+		StmtPtr initializer;
+		if (match(TokenType::SEMICOLON)) {
+			initializer = nullptr;
+		} else if (match(TokenType::VAR)) {
+			initializer = var_declaration();
+		} else {
+			initializer = expression_statement();
+		}
+
+		ExprPtr condition = nullptr;
+		// Allow no condition (true)
+		if (!check(TokenType::SEMICOLON)) {
+			condition = expression();
+		}
+		consume(TokenType::SEMICOLON, "Expect ';' after loop condition.");
+
+		ExprPtr increment = nullptr;
+		// Allow no increment (empty)
+		if (!check(TokenType::RIGHT_PAREN)) {
+			increment = expression();
+		}
+		consume(TokenType::RIGHT_PAREN, "Expect ')' after for");
+
+		auto body = statement();
+
+		return create_statement<For>(initializer, condition, increment, body);
 	}
 
 
@@ -317,8 +359,8 @@ private:
 		consume(TokenType::LEFT_PAREN, "Expect '(' after 'while'.");
 		auto condition = expression();
 		consume(TokenType::RIGHT_PAREN, "Expect ')' after while condition.");
-
 		auto body = statement();
+
 		return create_statement<While>(condition, body);
 	}
 

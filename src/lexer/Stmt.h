@@ -43,6 +43,31 @@ private:
 	ExprPtr m_expression{};
 };
 
+class For final : public Stmt {
+public:
+	For(StmtPtr initializer, ExprPtr condition, ExprPtr increment, StmtPtr body)
+		 : m_initializer(initializer), m_condition(condition), m_increment(increment), m_body(body) { }
+	void accept(StmtVisitor* visitor) override;
+
+	StmtPtr initializer() const {
+		return m_initializer;
+	}
+	ExprPtr condition() const {
+		return m_condition;
+	}
+	ExprPtr increment() const {
+		return m_increment;
+	}
+	StmtPtr body() const {
+		return m_body;
+	}
+private:
+	StmtPtr m_initializer{};
+	ExprPtr m_condition{};
+	ExprPtr m_increment{};
+	StmtPtr m_body{};
+};
+
 class If final : public Stmt {
 public:
 	If(ExprPtr condition, StmtPtr then_branch, StmtPtr else_branch)
@@ -132,6 +157,7 @@ class StmtVisitor {
 public:
 	virtual void visit_stmt(Block*) = 0;
 	virtual void visit_stmt(Expression*) = 0;
+	virtual void visit_stmt(For*) = 0;
 	virtual void visit_stmt(If*) = 0;
 	virtual void visit_stmt(Print*) = 0;
 	virtual void visit_stmt(Sleep*) = 0;
@@ -144,6 +170,10 @@ inline void Block::accept(StmtVisitor* visitor) {
 }
 
 inline void Expression::accept(StmtVisitor* visitor) {
+	visitor->visit_stmt(this);
+}
+
+inline void For::accept(StmtVisitor* visitor) {
 	visitor->visit_stmt(this);
 }
 

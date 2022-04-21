@@ -61,16 +61,35 @@ int main() {
 //}
 //	)";
 
+ //   std::string source = R"(
+	////var a = 3;
+	////if (a == 2 or 1 == 1)
+	////	print "a == 1";
+	//var counter = 1;
+	//while (counter < 100){
+	//	//sleep 100;
+	//	counter = counter + 1;
+	//	print "hello, world!: " + counter;
+	//}
+	//)";
+
+
     std::string source = R"(
-	//var a = 3;
-	//if (a == 2 or 1 == 1)
-	//	print "a == 1";
-	var counter = 1;
-	while (counter < 10){
-		sleep 100;
-		counter = counter + 1;
-		print "hello, world!: " + counter;
+
+	for (;;) {
+		print "hello, world!1: ";
+		print "hello, world!2: ";
 	}
+	for (var i = 0; i < 10; i = i + 1) {
+		print "hello, world!: " + i;
+	}
+
+	for (var i = 0; i < 10; ) {
+		print "hello, world!: " + i;
+	}
+	//for (var i = 0; ; i = i + 1) {
+	//	print "hello, world!: " + i;
+	//}
 	)";
     //std::string source = R"("test" == "othertest")";
     //std::string source = R"("test" == "othertest" != 3 * 3 > 4)";

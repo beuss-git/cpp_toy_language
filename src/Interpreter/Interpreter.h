@@ -147,6 +147,19 @@ private:
 		evaluate(stmt->expression());
 	}
 
+	void visit_stmt(For* stmt) override {
+		if (stmt->initializer()) {
+			execute(stmt->initializer());
+		}
+		while (!stmt->condition() || is_truthy(evaluate(stmt->condition()))) {
+			execute(stmt->body());
+
+			if (stmt->increment()) {
+				evaluate(stmt->increment());
+			}
+		}
+	}
+
 	void visit_stmt(Print* stmt) override {
 		auto value = evaluate(stmt->expression());
 		std::cout << value.to_string() << "\n";
@@ -163,7 +176,7 @@ private:
 	void visit_stmt(Var* stmt) override {
 		// Don't require initializer, set to nil
 		Value value = nullptr;
-		if (stmt->initializer() != nullptr) {
+		if (stmt->initializer()) {
 			value = evaluate(stmt->initializer());
 		}
 		m_environment.define(stmt->name().lexeme(), value);
