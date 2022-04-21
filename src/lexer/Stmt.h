@@ -43,10 +43,28 @@ private:
 	ExprPtr m_expression{};
 };
 
+class Var final : public Stmt {
+public:
+	Var(Token name, ExprPtr initializer)
+		 : m_name(name), m_initializer(initializer) { }
+	void accept(StmtVisitor* visitor) override;
+
+	Token name() const {
+		return m_name;
+	}
+	ExprPtr initializer() const {
+		return m_initializer;
+	}
+private:
+	Token m_name{};
+	ExprPtr m_initializer{};
+};
+
 class StmtVisitor {
 public:
 	virtual void visit_stmt(Expression*) = 0;
 	virtual void visit_stmt(Print*) = 0;
+	virtual void visit_stmt(Var*) = 0;
 };
 
 inline void Expression::accept(StmtVisitor* visitor) {
@@ -54,6 +72,10 @@ inline void Expression::accept(StmtVisitor* visitor) {
 }
 
 inline void Print::accept(StmtVisitor* visitor) {
+	visitor->visit_stmt(this);
+}
+
+inline void Var::accept(StmtVisitor* visitor) {
 	visitor->visit_stmt(this);
 }
 

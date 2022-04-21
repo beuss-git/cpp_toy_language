@@ -5,10 +5,16 @@
 #include "Expr.h"
 #include "Stmt.h"
 #include "Token.h"
+#include "Errors.h"
 #include "../Toy.h"
 
 /*
 	program        → statement* EOF ;
+
+	declaration    → varDecl
+				   | statement ;
+
+	varDecl        → "var" IDENTIFIER ( "=" expression )? ";" ;
 
 	statement      → exprStmt
 				   | printStmt ;
@@ -16,7 +22,9 @@
 	exprStmt       → expression ";" ;
 	printStmt      → "print" expression ";" ;
 
-	expression     → equality ;
+	expression     → assignment ;
+	assignment     → IDENTIFIER "=" assignment
+				   | equality ;
 	equality       → comparison ( ( "!=" | "==" ) comparison )* ;
 	comparison     → term ( ( ">" | ">=" | "<" | "<=" ) term )* ;
 	term           → factor ( ( "-" | "+" ) factor )* ;
@@ -24,7 +32,8 @@
 	unary          → ( "!" | "-" ) unary
 				   | primary ;
 	primary        → NUMBER | STRING | "true" | "false" | "nil"
-				   | "(" expression ")" ;
+				   | "(" expression ")"
+				   | IDENTIFIER ;
  */
 
 
@@ -48,7 +57,7 @@ public:
 			std::vector<StmtPtr> statements{};
 
 			while (!has_reached_end()) {
-				statements.push_back(statement());
+				statements.push_back(declaration());
 			}
 			return statements;
 		} catch (const ParseError& error) {
@@ -63,22 +72,7 @@ public:
 	}
 
 private:
-	class ParseError : public std::exception { };
 
-	StmtPtr print_statement() {
-		auto value = expression();
-		consume(TokenType::SEMICOLON, "Expect ';' after value.");
-		return create_statement<Print>(value);
-	}
-	StmtPtr statement() {
-		if (match(TokenType::PRINT)) return print_statement();
-		return expression_statement();
-	}
-	StmtPtr expression_statement() {
-		auto expr = expression();
-		consume(TokenType::SEMICOLON, "Expect ';' after expression.");
-		return create_statement<Expression>(expr);
-	}
 	bool has_reached_end() const {
 		return m_tokens.at(m_current).type() == TokenType::TOKEN_EOF;
 	}
@@ -119,9 +113,26 @@ private:
 	 * Binary operators
 	 */
 
-	// expression     → equality ;
+	// expression     → assignment ;
 	ExprPtr expression() {
-		return equality();
+		return assignment();
+	}
+	// assignment     → IDENTIFIER "=" assignment
+	//				| equality ;
+	ExprPtr assignment() {
+		auto expr = equality();
+		if (match(TokenType::EQUAL)) {
+			Token equals = previous();
+			auto value = assignment();
+
+			if (typeid(*expr).name() == typeid(Variable).name()) {
+				Token name = ((Variable*)(expr.get()))->name();
+				return create_expression<Assign>(name, value);
+			}
+
+			error(equals, "Invalid assignment target.");
+		}
+		return expr;
 	}
 	// equality       → comparison ( ( "!=" | "==" ) comparison )* ;
 	ExprPtr equality() {
@@ -172,6 +183,7 @@ private:
 	 * Unary operators
 	 */
 	// unary          → ( "!" | "-" ) unary
+	//				| primary ;
 	ExprPtr unary() {
 		if (match(TokenType::BANG, TokenType::MINUS)) {
 			Token op = previous();
@@ -181,14 +193,21 @@ private:
 		return primary();
 	}
 
+
+	// primary        → NUMBER | STRING | "true" | "false" | "nil"
+	//				   | "(" expression ")"
+	//				   | IDENTIFIER ;
 	ExprPtr primary() {
 		if (match(TokenType::FALSE)) return create_expression<Literal>(false);
 		if (match(TokenType::TRUE)) return create_expression<Literal>(true);
-		// TODO: better nil support
 		if (match(TokenType::NIL)) return create_expression<Literal>(nullptr);
 
 		if (match(TokenType::NUMBER, TokenType::STRING)) {
 			return create_expression<Literal>(previous().literal());
+		}
+
+		if (match(TokenType::IDENTIFIER)) {
+			return create_expression<Variable>(previous());
 		}
 
 		if (match(TokenType::LEFT_PAREN)) {
@@ -198,6 +217,49 @@ private:
 		}
 
 		throw error(peek(), "Expect expression.");
+	}
+
+	// declaration    → varDecl
+	//				| statement ;
+	StmtPtr declaration() {
+		try {
+			if (match(TokenType::VAR)) return var_declaration();
+			return statement();
+		} catch (const ParseError& error) {
+			synchronize();
+			return nullptr;
+		}
+	}
+	// varDecl        → "var" IDENTIFIER ( "=" expression )? ";" ;
+	StmtPtr var_declaration() {
+		Token name = consume(TokenType::IDENTIFIER, "Expect variable name.");
+		ExprPtr initializer = nullptr;
+		if (match(TokenType::EQUAL)) {
+			initializer = expression();
+		}
+		consume(TokenType::SEMICOLON, "Expect ';' after variable declaration.");
+		return create_statement<Var>(name, initializer);
+	}
+
+	//statement      → exprStmt
+	//				| printStmt ;
+	StmtPtr statement() {
+		if (match(TokenType::PRINT)) return print_statement();
+		return expression_statement();
+	}
+
+	// exprStmt       → expression ";" ;
+	StmtPtr expression_statement() {
+		auto expr = expression();
+		consume(TokenType::SEMICOLON, "Expect ';' after expression.");
+		return create_statement<Expression>(expr);
+	}
+
+	// printStmt      → "print" expression ";" ;
+	StmtPtr print_statement() {
+		auto value = expression();
+		consume(TokenType::SEMICOLON, "Expect ';' after value.");
+		return create_statement<Print>(value);
 	}
 
 	// Synchronize to a 'valid' state

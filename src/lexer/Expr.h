@@ -18,6 +18,23 @@ return {};
 
 using ExprPtr = std::shared_ptr<Expr>;
 
+class Assign final : public Expr {
+public:
+	Assign(Token name, ExprPtr value)
+		 : m_name(name), m_value(value) { }
+	Value accept(ExprVisitor* visitor) override;
+
+	Token name() const {
+		return m_name;
+	}
+	ExprPtr value() const {
+		return m_value;
+	}
+private:
+	Token m_name{};
+	ExprPtr m_value{};
+};
+
 class Binary final : public Expr {
 public:
 	Binary(ExprPtr left, Token op, ExprPtr right)
@@ -82,13 +99,32 @@ private:
 	ExprPtr m_right{};
 };
 
+class Variable final : public Expr {
+public:
+	Variable(Token name)
+		 : m_name(name) { }
+	Value accept(ExprVisitor* visitor) override;
+
+	Token name() const {
+		return m_name;
+	}
+private:
+	Token m_name{};
+};
+
 class ExprVisitor {
 public:
+	virtual Value visit_expr(Assign*) = 0;
 	virtual Value visit_expr(Binary*) = 0;
 	virtual Value visit_expr(Grouping*) = 0;
 	virtual Value visit_expr(Literal*) = 0;
 	virtual Value visit_expr(Unary*) = 0;
+	virtual Value visit_expr(Variable*) = 0;
 };
+
+inline Value Assign::accept(ExprVisitor* visitor) {
+	return visitor->visit_expr(this);
+}
 
 inline Value Binary::accept(ExprVisitor* visitor) {
 	return visitor->visit_expr(this);
@@ -103,6 +139,10 @@ inline Value Literal::accept(ExprVisitor* visitor) {
 }
 
 inline Value Unary::accept(ExprVisitor* visitor) {
+	return visitor->visit_expr(this);
+}
+
+inline Value Variable::accept(ExprVisitor* visitor) {
 	return visitor->visit_expr(this);
 }
 

@@ -33,7 +33,14 @@ int main() {
     //std::string source = R"(1 + 1)";
     //std::string source = R"(6 / 2*(1+2))";
     //std::string source = R"(6 / 0)";
-    std::string source = R"(print "true";)";
+    //std::string source = R"(print "true";)";
+    std::string source = R"(
+	a = "after";
+	var a = "before";
+	print a;
+	a = "after";
+	print a;
+	)";
     //std::string source = R"("test" == "othertest")";
     //std::string source = R"("test" == "othertest" != 3 * 3 > 4)";
     //std::string source = R"(

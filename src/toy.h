@@ -3,12 +3,12 @@
 #include <string>
 #include <iostream>
 
+#include "Lexer/Errors.h"
 #include "Lexer/Token.h"
 
 class Lexer;
 class Parser;
 class Interpreter;
-class RuntimeError;
 
 
 class Toy {

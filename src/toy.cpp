@@ -23,8 +23,8 @@ void Toy::run(const std::string& source) {
 	//	return;
 	//}
 
-	//AstPrinter printer{};
-	//std::cout << printer.print(expression) << "\n";
+	////AstPrinter printer{};
+	////std::cout << printer.print(expression) << "\n";
 
 	//if (m_has_runtime_error) {
 	//	// exit with code 70
@@ -36,6 +36,16 @@ void Toy::run(const std::string& source) {
 
 
 	auto statements = parser.parse();
+
+	if (m_has_error) {
+		// exit with code 65
+		return;
+	}
+
+	if (m_has_runtime_error) {
+		// exit with code 70
+		return;
+	}
 	Interpreter interpreter(*this);
 	interpreter.interpret(statements);
 }
@@ -47,6 +57,9 @@ void Toy::run_prompt() {
         std::getline(std::cin, line);
         if (line.length() == 0) break;
         run(line);
+
+		m_has_error = false;
+		m_has_runtime_error = false;
     }
 }
 

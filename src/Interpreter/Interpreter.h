@@ -1,19 +1,13 @@
 #pragma once
 #include <vector>
 
+
+#include "../Lexer/Errors.h"
 #include "../Lexer/Expr.h"
 #include "../Lexer/Stmt.h"
+#include "../Lexer/Environment.h"
 #include "../Toy.h"
 
-class RuntimeError : public std::runtime_error {
-public:
-	RuntimeError(Token token, std::string message) : runtime_error(message.c_str()), m_token(token) { }
-	Token token() const {
-		return m_token;
-	}
-private:
-	Token m_token{};
-};
 
 class Interpreter final : public ExprVisitor, public StmtVisitor {
 public:
@@ -116,6 +110,25 @@ private:
 		std::cout << value.to_string();
 	}
 
+	void visit_stmt(Var* stmt) override {
+		// Don't require initializer, set to nil
+		Value value = nullptr;
+		if (stmt->initializer() != nullptr) {
+			value = evaluate(stmt->initializer());
+		}
+		m_environment.define(stmt->name().lexeme(), value);
+	}
+
+	Value visit_expr(Variable* expr) override {
+		return m_environment.get(expr->name());
+	}
+
+	Value visit_expr(Assign* expr) {
+		auto value = evaluate(expr->value());
+		m_environment.assign(expr->name(), value);
+		return value;
+	}
+
 	Value evaluate(ExprPtr expr) {
 		return expr->accept(this);
 	}
@@ -139,4 +152,5 @@ private:
 
 private:
 	Toy& m_toy;
+	Environment m_environment{};
 };

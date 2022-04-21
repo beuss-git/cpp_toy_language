@@ -9,6 +9,8 @@ add_executable(cpp_toy_language
         "src/Toy.h" 
 		"src/Value.h"
 		"src/Lexer/AstPrinter.h"
+        "src/lexer/Environment.h"
+		"src/Lexer/Errors.h"
         "src/lexer/Expr.h"
         "src/lexer/Stmt.h"
         "src/lexer/Lexer.cpp"
@@ -19,6 +21,6 @@ add_executable(cpp_toy_language
 		"src/Interpreter/Interpreter.h"
 		"src/Interpreter/Interpreter.cpp"
         "external/magic_enum.hpp"
-  )
+	   )
 
 add_subdirectory(tools/expression_generator)

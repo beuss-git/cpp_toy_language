@@ -190,14 +190,17 @@ int main() {
 	static auto output_dir = R"(G:\repos\cpp_toy_language\src\lexer)";
 
 	define_ast(output_dir, "Expr", "Value", std::vector<std::string>{
+		"Assign   | Token name; ExprPtr value",
 		"Binary   | ExprPtr left; Token op; ExprPtr right",
 		"Grouping | ExprPtr expression",
 		"Literal  | Value value",
-		"Unary    | Token op; ExprPtr right"
+		"Unary    | Token op; ExprPtr right",
+		"Variable | Token name"
 	});
 	define_ast(output_dir, "Stmt", "void", std::vector<std::string>{
 		"Expression	| ExprPtr expression",
 		"Print		| ExprPtr expression",
+		"Var		| Token name; ExprPtr initializer",
 	});
 	return 0;
 }
