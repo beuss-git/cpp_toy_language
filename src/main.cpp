@@ -102,26 +102,33 @@ int main() {
 	//}
 	//)";
 
+
     std::string source = R"(
-	var a = 1;
-	//print a;
-
-	fun hello_world(hello, world) {
-		print hello + world;
-	}
-	fun test(aparam) {
-		aparam = 3;
-		print aparam;
-	}
-	hello_world("hello, ", "world!");
-
-	// This should error
-	//a();
-	//test(a);
-	//print a;
-	//print test();
-	//print test;
+while (true) {
+	sleep 100;
+	print clock();
+}
 	)";
+ //   std::string source = R"(
+	//var a = 1;
+	////print a;
+
+	//fun hello_world(hello, world) {
+	//	print hello + world;
+	//}
+	//fun test(aparam) {
+	//	aparam = 3;
+	//	print aparam;
+	//}
+	//hello_world("hello, ", "world!");
+
+	//// This should error
+	////a();
+	////test(a);
+	////print a;
+	////print test();
+	////print test;
+	//)";
     //std::string source = R"("test" == "othertest")";
     //std::string source = R"("test" == "othertest" != 3 * 3 > 4)";
     //std::string source = R"(

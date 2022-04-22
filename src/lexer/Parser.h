@@ -25,11 +25,14 @@
 				   | forStmt
 				   | ifStmt
 				   | printStmt
+				   | returnStmt
 				   | sleepStmt
 				   | whileStmt
 				   | block
 				   | loopBreak
 				   | loopContinue;
+
+	returnStmt     → "return" expression? ";" ;
 
 	forStmt        → "for" "(" ( varDecl | exprStmt | ";" )
 					 expression? ";"
@@ -366,6 +369,7 @@ private:
 		if (match(TokenType::FOR)) return for_statement();
 		if (match(TokenType::IF)) return if_statement();
 		if (match(TokenType::PRINT)) return print_statement();
+		if (match(TokenType::RETURN)) return return_statement();
 		if (match(TokenType::SLEEP)) return sleep_statement();
 		if (match(TokenType::WHILE)) return while_statement();
 		if (match(TokenType::LEFT_BRACE)) return block();
@@ -482,6 +486,12 @@ private:
 		auto value = expression();
 		consume(TokenType::SEMICOLON, "Expect ';' after value.");
 		return create_statement<Print>(value);
+	}
+
+
+	//returnStmt     → "return" expression? ";" ;
+	StmtPtr return_statement() {
+		return nullptr;
 	}
 
 	// sleepStmt      → "sleep" expression ";" ;

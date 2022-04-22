@@ -21,8 +21,8 @@ public:
 	int arity() override { return 0; }
 	ValuePtr call(Interpreter*, std::vector<ValuePtr>) override {
 		auto now = std::chrono::system_clock::now();
-		auto seconds = std::chrono::duration_cast<std::chrono::seconds>(now.time_since_epoch());
-		return create_value((double)seconds.count());
+		auto seconds = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch());
+		return create_value((double)seconds.count() / 1000.0);
 	}
 	std::string to_string() const override {
 		return "<native fn>";
