@@ -88,7 +88,7 @@ void Lexer::scan_token() {
         default:
             if (std::isdigit(c)) {
                 number();
-            } else if (std::isalpha(c)) {
+            } else if (is_alpha(c)) {
                 identifier();
             } else {
                 m_toy.error(m_line, std::string("Unexpected character") + c);

@@ -97,12 +97,15 @@ private:
         add_token(TokenType::NUMBER, std::stod(number_str));
     }
 
-    bool isalphanumeric(char c) {
-        return std::isalpha(c) || std::isdigit(c);
+	bool is_alpha(char c) {
+		return std::isalpha(c) || c == '_';
+	}
+    bool is_alphanumeric(char c) {
+        return is_alpha(c) || std::isdigit(c);
     }
 
     void identifier() {
-        while (isalphanumeric(peek())) {
+        while (is_alphanumeric(peek())) {
             advance();
         }
         std::string text = m_source.substr(m_start, m_current - m_start);
