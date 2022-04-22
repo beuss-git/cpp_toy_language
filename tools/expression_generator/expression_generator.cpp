@@ -213,7 +213,7 @@ int main() {
 		"For		| StmtPtr initializer; ExprPtr condition; ExprPtr increment; StmtPtr body",
 		"If			| ExprPtr condition; StmtPtr then_branch; StmtPtr else_branch",
 		"Print		| ExprPtr expression",
-		"Return     | Token keyword, ExprPtr value",
+		"Return     | Token keyword; ExprPtr value",
 		"Sleep		| Token token; ExprPtr expression",
 		"Var		| Token name; ExprPtr initializer",
 		"While      | ExprPtr condition; StmtPtr body"

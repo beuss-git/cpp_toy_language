@@ -103,11 +103,18 @@ int main() {
 	//)";
 
 
+//    std::string source = R"(
+//while (true) {
+//	sleep 100;
+//	print clock();
+//}
+//	)";
+
     std::string source = R"(
-while (true) {
-	sleep 100;
-	print clock();
+fun test(p) {
+	return p;
 }
+print test(3);
 	)";
  //   std::string source = R"(
 	//var a = 1;

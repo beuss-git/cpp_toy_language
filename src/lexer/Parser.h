@@ -488,10 +488,15 @@ private:
 		return create_statement<Print>(value);
 	}
 
-
 	//returnStmt     → "return" expression? ";" ;
 	StmtPtr return_statement() {
-		return nullptr;
+		Token keyword = previous();
+		ExprPtr value = nullptr;
+		if (!check(TokenType::SEMICOLON)) {
+			value = expression();
+		}
+		consume(TokenType::SEMICOLON, "Expect ';' after return value;");
+		return create_statement<Return>(keyword, value);
 	}
 
 	// sleepStmt      → "sleep" expression ";" ;

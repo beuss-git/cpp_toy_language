@@ -139,6 +139,23 @@ private:
 	ExprPtr m_expression{};
 };
 
+class Return final : public Stmt {
+public:
+	Return(Token keyword, ExprPtr value)
+		 : m_keyword(keyword), m_value(value) { }
+	void accept(StmtVisitor* visitor) override;
+
+	Token keyword() const {
+		return m_keyword;
+	}
+	ExprPtr value() const {
+		return m_value;
+	}
+private:
+	Token m_keyword{};
+	ExprPtr m_value{};
+};
+
 class Sleep final : public Stmt {
 public:
 	Sleep(Token token, ExprPtr expression)
@@ -200,6 +217,7 @@ public:
 	virtual void visit_stmt(For*) = 0;
 	virtual void visit_stmt(If*) = 0;
 	virtual void visit_stmt(Print*) = 0;
+	virtual void visit_stmt(Return*) = 0;
 	virtual void visit_stmt(Sleep*) = 0;
 	virtual void visit_stmt(Var*) = 0;
 	virtual void visit_stmt(While*) = 0;
@@ -234,6 +252,10 @@ inline void If::accept(StmtVisitor* visitor) {
 }
 
 inline void Print::accept(StmtVisitor* visitor) {
+	visitor->visit_stmt(this);
+}
+
+inline void Return::accept(StmtVisitor* visitor) {
 	visitor->visit_stmt(this);
 }
 

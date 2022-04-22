@@ -28,7 +28,19 @@ public:
 		return "<native fn>";
 	}
 };
+
+class ReturnException : public std::exception {
+public:
+	ReturnException(ValuePtr value) : m_value(value) {}
+	ValuePtr value() const {
+		return m_value;
+	}
+private:
+	ValuePtr m_value{nullptr};
+};
+
 class ToyFunction;
+
 class Interpreter final : public ExprVisitor, public StmtVisitor {
 public:
 	Interpreter(Toy& toy) : m_toy(toy), m_globals({}), m_environment(&m_globals) {
@@ -227,6 +239,15 @@ private:
 		std::cout << value->to_string() << "\n";
 	}
 
+
+	void visit_stmt(Return* stmt) override {
+		ValuePtr value = nullptr;
+		if (stmt->value()) {
+			value = evaluate(stmt->value());
+		}
+		throw ReturnException(value);
+	}
+
 	void visit_stmt(Sleep* stmt) override {
 		auto value = evaluate(stmt->expression());
 		if (!value->is_number()) {
@@ -305,7 +326,11 @@ public:
 		for (int i = 0; i < m_declaration->params().size(); i++) {
 			environment.define(m_declaration->params().at(i).lexeme(), arguments.at(i));
 		}
-		interpreter->execute_block(m_declaration->body(), environment);
+		try {
+			interpreter->execute_block(m_declaration->body(), environment);
+		} catch (const ReturnException& e) { 
+			return e.value();
+		}
 		return nullptr;
 	}
 	std::string to_string() const override {
