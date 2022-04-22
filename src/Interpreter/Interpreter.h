@@ -339,7 +339,7 @@ public:
 		} catch (const ReturnException& e) { 
 			return e.value();
 		}
-		return nullptr;
+		return create_value(nullptr);
 	}
 	std::string to_string() const override {
 		return "<fn " + m_declaration->name().lexeme() + ">";
