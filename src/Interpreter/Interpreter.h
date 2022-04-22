@@ -56,6 +56,9 @@ public:
 		catch (const RuntimeError& e) {
 			m_toy.runtime_error(e);
 		}
+		catch (const ReturnException&) {
+			// TODO: print out value?
+		}
 	}
 	Environment globals() const {
 		return m_globals;
@@ -245,6 +248,9 @@ private:
 		if (stmt->value()) {
 			value = evaluate(stmt->value());
 		}
+		else {
+			value = create_value(nullptr);
+		}
 		throw ReturnException(value);
 	}
 
@@ -261,6 +267,8 @@ private:
 		ValuePtr value = nullptr;
 		if (stmt->initializer()) {
 			value = evaluate(stmt->initializer());
+		} else {
+			value = create_value(nullptr);
 		}
 		m_environment.define(stmt->name().lexeme(), value);
 	}

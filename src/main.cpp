@@ -114,6 +114,7 @@ int main() {
 fun test(p) {
 	return p;
 }
+//return;
 print test(3);
 	)";
  //   std::string source = R"(
