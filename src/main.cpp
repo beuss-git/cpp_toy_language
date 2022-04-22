@@ -107,7 +107,7 @@ int main() {
 	//print a;
 
 	fun hello_world(hello, world) {
-		print hello + world
+		print hello + world;
 	}
 	fun test(aparam) {
 		aparam = 3;
