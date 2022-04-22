@@ -110,13 +110,58 @@ int main() {
 //}
 //	)";
 
+//    std::string source = R"(
+//fun test(p) {
+//	return p;
+//}
+////return;
+//print test(3);
+//	)";
+
+
+//    std::string source = R"(
+//fun fib(n) {
+//	if (n <= 0) {
+//		return 1;
+//	}
+//	var val = fib(n - 1);
+//	print val;
+//	return val;
+//}
+//
+//var a = 5;
+//fib(a);
+////print a;
+//	)";
     std::string source = R"(
-fun test(p) {
-	return p;
+fun fib(n) {
+	if (n <= 1) {
+		//print "returning " + n;
+		return n;
+	}
+	var a = fib(n - 2);
+	var b = fib(n - 1);
+	return a + b;
 }
-//return;
-print test(3);
+
+//for (var i = 0; i < 20; i = i + 1) {
+//  print fib(i);
+//}
+print fib(9);
 	)";
+
+//    std::string source = R"(
+//fun fib(n) {
+//	if (n <= 1) {
+//		return n;
+//	}
+//	var a = fib(n - 1);
+//	var b = fib(n - 1);
+//	return a;
+//}
+//
+//print fib(2);
+//	)";
  //   std::string source = R"(
 	//var a = 1;
 	////print a;

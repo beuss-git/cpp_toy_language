@@ -43,8 +43,8 @@ class ToyFunction;
 
 class Interpreter final : public ExprVisitor, public StmtVisitor {
 public:
-	Interpreter(Toy& toy) : m_toy(toy), m_globals({}), m_environment(&m_globals) {
-		m_globals.define("clock", create_value<ToyClock>());
+	Interpreter(Toy& toy) : m_toy(toy), m_globals(std::make_shared<Environment>()), m_environment(m_globals) {
+		m_globals->define("clock", create_value<ToyClock>());
 	}
 
 	void interpret(const std::vector<StmtPtr>& statements) {
@@ -60,19 +60,34 @@ public:
 			// TODO: print out value?
 		}
 	}
-	Environment globals() const {
+
+	std::shared_ptr<Environment> globals() {
 		return m_globals;
 	}
+
+	//std::shared_ptr<Environment> environment() {
+	//	return m_environment;
+	//}
 
 	void execute(StmtPtr stmt) {
 		stmt->accept(this);
 	}
 
+	class EnvironmentTracker {
+	public:
+		EnvironmentTracker(std::shared_ptr<Environment>& current) : m_previous(current), m_current(current) { }
+		~EnvironmentTracker() {
+			m_current = m_previous;
+		}
+	private:
+		std::shared_ptr<Environment> m_previous;
+		std::shared_ptr<Environment>& m_current;
+	};
 	// Takes copy of current environment
-	void execute_block(std::vector<StmtPtr> statements, Environment environment) {
-		auto previous = m_environment;
+	void execute_block(std::vector<StmtPtr> statements, std::shared_ptr<Environment> environment) {
+		EnvironmentTracker eb(m_environment);
 		try {
-			m_environment = std::move(environment);
+			m_environment = environment;
 			for (auto statement : statements) {
 				execute(statement);
 			}
@@ -80,7 +95,6 @@ public:
 		catch (const RuntimeError& err) {
 			m_toy.runtime_error(err);
 		}
-		m_environment = previous;
 	}
 private:
 
@@ -94,7 +108,7 @@ private:
 	}
 
 	void visit_stmt(Block* stmt) override {
-		execute_block(stmt->statements(), m_environment);
+		execute_block(stmt->statements(), std::make_shared<Environment>(m_environment));
 	}
 
 	class BreakException : public std::exception {};
@@ -215,7 +229,7 @@ private:
 	}
 
 	void visit_stmt(Function* stmt) {
-		m_environment.define(stmt->name().lexeme(), create_value<ToyFunction>(stmt));
+		m_environment->define(stmt->name().lexeme(), create_value<ToyFunction>(stmt, m_environment));
 	}
 
 	void visit_stmt(For* stmt) override {
@@ -270,7 +284,7 @@ private:
 		} else {
 			value = create_value(nullptr);
 		}
-		m_environment.define(stmt->name().lexeme(), value);
+		m_environment->define(stmt->name().lexeme(), value);
 	}
 
 	void visit_stmt(While* stmt) override {
@@ -286,12 +300,12 @@ private:
 	}
 
 	ValuePtr visit_expr(Variable* expr) override {
-		return m_environment.get(expr->name());
+		return m_environment->get(expr->name());
 	}
 
 	ValuePtr visit_expr(Assign* expr) {
 		auto value = evaluate(expr->value());
-		m_environment.assign(expr->name(), value);
+		m_environment->assign(expr->name(), value);
 		return value;
 	}
 
@@ -318,22 +332,24 @@ private:
 
 private:
 	Toy& m_toy;
-	Environment m_globals{};
-	Environment m_environment{};
+	std::shared_ptr<Environment> m_globals{};
+	std::shared_ptr<Environment> m_environment{};
 };
 
 class ToyFunction final : public ToyCallable {
 public:
-	ToyFunction(Function* declaration) {
+	ToyFunction(Function* declaration, std::shared_ptr<Environment> closure) {
 		m_declaration = declaration;
+		m_closure = closure;
 	}
 	int arity() override { return m_declaration->params().size(); }
 	ValuePtr call(Interpreter* interpreter, std::vector<ValuePtr> arguments) override {
-		Environment environment(interpreter->globals());
+		auto environment = std::make_shared<Environment>(m_closure);
 		
 		for (int i = 0; i < m_declaration->params().size(); i++) {
-			environment.define(m_declaration->params().at(i).lexeme(), arguments.at(i));
+			environment->define(m_declaration->params().at(i).lexeme(), arguments.at(i));
 		}
+
 		try {
 			interpreter->execute_block(m_declaration->body(), environment);
 		} catch (const ReturnException& e) { 
@@ -345,5 +361,6 @@ public:
 		return "<fn " + m_declaration->name().lexeme() + ">";
 	}
 private:
-	Function* m_declaration;
+	Function* m_declaration{nullptr};
+	std::shared_ptr<Environment> m_closure{nullptr};
 };

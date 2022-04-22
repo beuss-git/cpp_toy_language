@@ -6,7 +6,10 @@
 class Environment {
 public:
 	Environment() = default;
-	Environment(Environment* enclosing) : m_enclosing(enclosing) {}
+	Environment(std::shared_ptr<Environment> enclosing) : m_enclosing(enclosing) {}
+	//Environment(Environment&) = delete;
+	//Environment(const Environment&) = delete;
+
 
 	void define(std::string name, ValuePtr value) {
 		m_values[name] = value;
@@ -36,5 +39,5 @@ public:
 	}
 private:
 	std::unordered_map<std::string, ValuePtr> m_values{};
-	Environment* m_enclosing{nullptr};
+	std::shared_ptr<Environment> m_enclosing{nullptr};
 };
