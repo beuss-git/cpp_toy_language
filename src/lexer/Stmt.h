@@ -11,7 +11,7 @@ class StmtVisitor;
 class Stmt {
 public:
 	virtual void accept(StmtVisitor * visitor) {
-		assert(false, "Not implemented");
+		assert(false && "Not implemented");
 	}
 };
 

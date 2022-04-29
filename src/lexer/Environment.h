@@ -11,7 +11,7 @@ public:
 	//Environment(const Environment&) = delete;
 
 
-	void define(std::string name, ValuePtr value) {
+	void define(const std::string& name, const ValuePtr& value) {
 		m_values[name] = value;
 	}
 

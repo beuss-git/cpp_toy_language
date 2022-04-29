@@ -54,16 +54,16 @@ enum class TokenType {
 class Token {
 public:
     Token(TokenType type, std::string lexeme, Value literal, int line) : m_type(type), m_lexeme(std::move(lexeme)),
-                                                                            m_literal(std::move(literal)),
-                                                                            m_line(line) {}
+                                                                         m_literal(std::move(literal)),
+                                                                         m_line(line) {}
 	Token() = default;
 
     [[nodiscard]] TokenType type() const { return m_type; }
 
-    [[nodiscard]] std::string lexeme() const {
+    [[nodiscard]] const std::string& lexeme() const {
         return m_lexeme;
     }
-    [[nodiscard]] Value literal() const {
+    [[nodiscard]] const Value& literal() const {
         return m_literal;
     }
 	[[nodiscard]] int line() const {

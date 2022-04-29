@@ -95,7 +95,7 @@ public:
 				statements.push_back(declaration());
 			}
 			return statements;
-		} catch (const ParseError& error) {
+		} catch (const ParseError&) {
 			return {};
 		}
 	}
@@ -315,7 +315,7 @@ private:
 			if (match(TokenType::FUN)) return fun_declaration("function");
 			if (match(TokenType::VAR)) return var_declaration();
 			return statement();
-		} catch (const ParseError& error) {
+		} catch (const ParseError&) {
 			synchronize();
 			return nullptr;
 		}

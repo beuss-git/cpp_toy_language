@@ -133,35 +133,78 @@ int main() {
 //fib(a);
 ////print a;
 //	)";
-    std::string source = R"(
-fun fib(n) {
-	if (n <= 1) {
-		//print "returning " + n;
-		return n;
-	}
-	var a = fib(n - 2);
-	var b = fib(n - 1);
-	return a + b;
-}
-
-//for (var i = 0; i < 20; i = i + 1) {
-//  print fib(i);
-//}
-print fib(9);
-	)";
-
 //    std::string source = R"(
 //fun fib(n) {
 //	if (n <= 1) {
+//		//print "returning " + n;
 //		return n;
 //	}
-//	var a = fib(n - 1);
+//	var a = fib(n - 2);
 //	var b = fib(n - 1);
+//	return a + b;
+//}
+//
+////for (var i = 0; i < 20; i = i + 1) {
+////  print fib(i);
+////}
+//print fib(9);
+//	)";
+//    std::string source = R"(
+//fun makeCounter() {
+//  var i = 0;
+//  fun count() {
+//    i = i + 1;
+//    print i;
+//  }
+//
+//  return count;
+//}
+//
+//var counter = makeCounter();
+//counter(); // "1".
+//counter(); // "2".
+//	)";
+//std::string source = R"(
+//fun invoke(a){
+//	a();
+//}
+//invoke(fun (){print "hello";});
+//)";
+
+
+//    std::string source = R"(
+//fun fib(n) {
+//	var a = 0;
+//	var b = 1;
+//
+//	//var tmp;
+//	for (var i = 0; i < n; i = i + 1) {
+//		var tmp = a;
+//		a = b;
+//		b = tmp + b;
+//	}
 //	return a;
 //}
 //
-//print fib(2);
+//var before = clock();
+////print fib(10);
+//fib(1000000);
+//var after = clock();
+//print after - before + " seconds";
 //	)";
+    std::string source = R"(
+fun fib(n) {
+	if (n <= 1) {
+		return n;
+	}
+	return fib(n - 2) + fib (n - 1);
+}
+
+var before = clock();
+print fib(35);
+var after = clock();
+print after - before + " seconds";
+	)";
  //   std::string source = R"(
 	//var a = 1;
 	////print a;

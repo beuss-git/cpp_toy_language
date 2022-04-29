@@ -11,7 +11,7 @@ class ExprVisitor;
 class Expr {
 public:
 	virtual ValuePtr accept(ExprVisitor * visitor) {
-		assert(false, "Not implemented");
+		assert(false && "Not implemented");
 		return {};
 	}
 };

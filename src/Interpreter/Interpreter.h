@@ -31,7 +31,7 @@ public:
 
 class ReturnException : public std::exception {
 public:
-	ReturnException(ValuePtr value) : m_value(value) {}
+	ReturnException(ValuePtr value) : m_value(std::move(value)) {}
 	ValuePtr value() const {
 		return m_value;
 	}
